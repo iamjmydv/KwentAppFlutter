@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kwentappflutter/core/resources/strings.dart';
+import 'package:kwentappflutter/core/router/app_router.dart';
 import 'package:kwentappflutter/core/theme/app_theme.dart';
 
 void main() {
@@ -7,57 +9,30 @@ void main() {
   runApp(const KwentappApp());
 }
 
-class KwentappApp extends StatelessWidget {
+class KwentappApp extends StatefulWidget {
   const KwentappApp({super.key});
 
   @override
+  State<KwentappApp> createState() => _KwentappAppState();
+}
+
+class _KwentappAppState extends State<KwentappApp> {
+  late final GoRouter _router = createRouter();
+
+  @override
+  void dispose() {
+    _router.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: Strings.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      home: const FoundationPlaceholderPage(),
-    );
-  }
-}
-
-class FoundationPlaceholderPage extends StatelessWidget {
-  const FoundationPlaceholderPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircleAvatar(
-              radius: 32,
-              backgroundColor: theme.colorScheme.primary,
-              child: Text(
-                'K',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700,
-                  color: theme.colorScheme.onPrimary,
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(Strings.appName, style: theme.textTheme.headlineMedium),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              Strings.tagline,
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            Text('Day 1 — foundation ready', style: theme.textTheme.bodySmall),
-          ],
-        ),
-      ),
+      routerConfig: _router,
     );
   }
 }
