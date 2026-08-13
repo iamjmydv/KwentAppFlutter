@@ -35,6 +35,12 @@ class AppRadius {
   static const card = 16.0;
 }
 
+class AppLayout {
+  const AppLayout._();
+
+  static const contentMaxWidth = 430.0;
+}
+
 class AppSpacing {
   const AppSpacing._();
 

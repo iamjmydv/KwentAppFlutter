@@ -13,4 +13,6 @@ class AppRoutes {
   static String editOf(String id) => '/post/$id/edit';
 
   static const publicRoutes = <String>{feed, login, register};
+
+  static const authSiblingExtra = 'auth-sibling';
 }

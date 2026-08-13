@@ -20,6 +20,10 @@ class Strings {
   static const alreadyHaveAccount = 'Already have an account?';
   static const termsNote =
       'By signing up, you agree to our Terms of Service and Privacy Policy.';
+  static const showPassword = 'Show password';
+  static const hidePassword = 'Hide password';
+  static const authNotWiredYet =
+      'Form validated. Sign-in is wired once Supabase is set up (Day 10).';
 
   static const nameRequired = 'Please enter your name';
   static const emailRequired = 'Please enter your email';
