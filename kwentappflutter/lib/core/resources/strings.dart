@@ -32,6 +32,10 @@ class Strings {
   static const passwordTooShort = 'Password must be at least 8 characters';
 
   static const invalidCredentials = 'Incorrect email or password';
+  static const signInRequired = 'Sign in to continue.';
+  static const postNotFound = 'That kwento is no longer available.';
+  static const commentNotFound = 'That comment is no longer available.';
+  static const profileNotFound = 'That profile is no longer available.';
   static const genericError = 'Something went wrong. Please try again.';
   static const networkError = 'No connection. Check your internet and try again.';
   static const storageError = 'Image upload failed. Please try again.';

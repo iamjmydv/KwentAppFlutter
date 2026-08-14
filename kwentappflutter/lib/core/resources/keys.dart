@@ -20,6 +20,7 @@ class Keys {
   static const position = 'position';
   static const createdAt = 'created_at';
   static const updatedAt = 'updated_at';
+  static const count = 'count';
 
   static const postImagesBucket = 'post-images';
   static const commentImagesBucket = 'comment-images';
