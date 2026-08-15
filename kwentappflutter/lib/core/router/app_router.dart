@@ -4,6 +4,7 @@ import 'package:kwentappflutter/core/router/app_routes.dart';
 import 'package:kwentappflutter/core/router/app_shell.dart';
 import 'package:kwentappflutter/ui/auth/login/login_page.dart';
 import 'package:kwentappflutter/ui/auth/register/register_page.dart';
+import 'package:kwentappflutter/ui/connection_check/connection_check_page.dart';
 import 'package:kwentappflutter/ui/feed/feed_page.dart';
 import 'package:kwentappflutter/ui/post_detail/post_detail_page.dart';
 import 'package:kwentappflutter/ui/post_editor/post_editor_page.dart';
@@ -47,6 +48,11 @@ GoRouter createRouter() {
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.register,
         builder: (context, state) => const RegisterPage(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.connectionCheck,
+        builder: (context, state) => const ConnectionCheckPage(),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,

@@ -40,6 +40,17 @@ class Strings {
   static const networkError = 'No connection. Check your internet and try again.';
   static const storageError = 'Image upload failed. Please try again.';
 
+  static const connectionCheckTitle = 'Supabase connection';
+  static const checkingConnection = 'Checking connection…';
+  static const supabaseConnected = 'Supabase connected';
+  static const supabaseConnectedDetail =
+      'Client initialised, network reachable, posts table readable without signing in.';
+  static const supabaseNotConfigured = 'Supabase is not configured';
+  static const supabaseNotConfiguredDetail =
+      'Run the app with --dart-define SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY.';
+  static const supabaseUnreachable = 'Could not reach Supabase';
+  static const recheck = 'Check again';
+
   static const writeAction = 'Write';
   static const homeTab = 'Home';
   static const profileTab = 'Profile';
