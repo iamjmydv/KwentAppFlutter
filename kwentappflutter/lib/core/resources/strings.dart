@@ -32,6 +32,7 @@ class Strings {
   static const passwordTooShort = 'Password must be at least 8 characters';
 
   static const invalidCredentials = 'Incorrect email or password';
+  static const notAllowed = 'You can only change your own kwento.';
   static const signInRequired = 'Sign in to continue.';
   static const postNotFound = 'That kwento is no longer available.';
   static const commentNotFound = 'That comment is no longer available.';

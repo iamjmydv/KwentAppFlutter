@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kwentappflutter/core/router/app_routes.dart';
 import 'package:kwentappflutter/core/router/app_shell.dart';
+import 'package:kwentappflutter/ui/auth/auth_viewmodel.dart';
 import 'package:kwentappflutter/ui/auth/login/login_page.dart';
 import 'package:kwentappflutter/ui/auth/register/register_page.dart';
 import 'package:kwentappflutter/ui/connection_check/connection_check_page.dart';
@@ -12,10 +13,12 @@ import 'package:kwentappflutter/ui/profile/profile_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
-GoRouter createRouter() {
+GoRouter createRouter(AuthViewModel auth) {
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: AppRoutes.feed,
+    refreshListenable: auth,
+    redirect: (context, state) => _guard(auth, state),
     routes: [
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
@@ -73,4 +76,17 @@ GoRouter createRouter() {
       ),
     ],
   );
+}
+
+String? _guard(AuthViewModel auth, GoRouterState state) {
+  final location = state.matchedLocation;
+  final isPublic = AppRoutes.isPublic(location);
+
+  if (!auth.isSignedIn && !isPublic) return AppRoutes.login;
+
+  final onAuthScreen =
+      location == AppRoutes.login || location == AppRoutes.register;
+  if (auth.isSignedIn && onAuthScreen) return AppRoutes.feed;
+
+  return null;
 }

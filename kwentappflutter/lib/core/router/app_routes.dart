@@ -13,7 +13,23 @@ class AppRoutes {
   static String detailOf(String id) => '/post/$id';
   static String editOf(String id) => '/post/$id/edit';
 
-  static const publicRoutes = <String>{feed, login, register, connectionCheck};
-
   static const authSiblingExtra = 'auth-sibling';
+
+  static const publicRoutes = <String>{
+    feed,
+    login,
+    register,
+    connectionCheck,
+    postDetail,
+  };
+
+  static bool isPublic(String location) {
+    if (publicRoutes.contains(location)) return true;
+
+    final isPostPath = location.startsWith('/post/');
+    final isEditor =
+        location == postNew || location.endsWith('/edit');
+
+    return isPostPath && !isEditor;
+  }
 }

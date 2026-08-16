@@ -5,6 +5,8 @@ import 'package:kwentappflutter/core/resources/strings.dart';
 import 'package:kwentappflutter/core/router/app_routes.dart';
 import 'package:kwentappflutter/core/theme/app_theme.dart';
 import 'package:kwentappflutter/core/utils/validators.dart';
+import 'package:kwentappflutter/ui/auth/auth_viewmodel.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -28,7 +30,7 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     FocusScope.of(context).unfocus();
 
     if (!(_formKey.currentState?.validate() ?? false)) {
@@ -36,7 +38,17 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    CommonSnackbar.show(context, Strings.authNotWiredYet);
+    final auth = context.read<AuthViewModel>();
+    final ok = await auth.login(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
+
+    if (!mounted || ok) return;
+    CommonSnackbar.showError(
+      context,
+      auth.errorMessage ?? Strings.genericError,
+    );
   }
 
   void _goToRegister() {
@@ -111,6 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                         CommonPrimaryButton(
                           label: Strings.signIn,
                           onPressed: _submit,
+                          isLoading: context.watch<AuthViewModel>().isBusy,
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         Row(

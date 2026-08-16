@@ -6,12 +6,14 @@ class PostImage {
     required this.postId,
     required this.storagePath,
     required this.position,
+    this.url = '',
   });
 
   final String id;
   final String postId;
   final String storagePath;
   final int position;
+  final String url;
 
   factory PostImage.fromMap(String id, Map<String, dynamic> map) {
     return PostImage(
@@ -22,6 +24,16 @@ class PostImage {
     );
   }
 
+  PostImage withUrl(String url) {
+    return PostImage(
+      id: id,
+      postId: postId,
+      storagePath: storagePath,
+      position: position,
+      url: url,
+    );
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -29,8 +41,9 @@ class PostImage {
           other.id == id &&
           other.postId == postId &&
           other.storagePath == storagePath &&
-          other.position == position;
+          other.position == position &&
+          other.url == url;
 
   @override
-  int get hashCode => Object.hash(id, postId, storagePath, position);
+  int get hashCode => Object.hash(id, postId, storagePath, position, url);
 }

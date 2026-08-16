@@ -6,4 +6,5 @@ class Constants {
   static const maxImagesPerComment = 6;
   static const maxImageBytes = 5 * 1024 * 1024;
   static const allowedImageExtensions = ['jpg', 'jpeg', 'png'];
+  static const defaultImageExtension = 'jpg';
 }
