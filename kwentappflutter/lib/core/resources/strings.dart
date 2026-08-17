@@ -58,6 +58,13 @@ class Strings {
   static const loadingMore = 'Loading more kwento…';
   static const endOfFeed = 'You’ve reached the end of the kwentuhan.';
   static const emptyFeed = 'Walang kwento pa — write the first one!';
+  static const emptyFeedHint = 'Tap the pencil to start the kwentuhan.';
+  static const retry = 'Try again';
+  static const couldNotLoadMore = 'Could not load more kwento.';
+  static const feedLoadFailed = 'Could not load the kwentuhan.';
+  static const oneComment = '1 comment';
+  static const noComments = 'No comments yet';
+  static const justNow = 'just now';
   static const comments = 'Comments';
   static const joinKwentuhan = 'Join the kwentuhan…';
   static const post = 'Post';

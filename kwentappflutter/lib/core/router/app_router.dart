@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
 import 'package:kwentappflutter/core/router/app_routes.dart';
 import 'package:kwentappflutter/core/router/app_shell.dart';
+import 'package:kwentappflutter/data/repositories/post_repository.dart';
 import 'package:kwentappflutter/ui/auth/auth_viewmodel.dart';
 import 'package:kwentappflutter/ui/auth/login/login_page.dart';
 import 'package:kwentappflutter/ui/auth/register/register_page.dart';
 import 'package:kwentappflutter/ui/connection_check/connection_check_page.dart';
 import 'package:kwentappflutter/ui/feed/feed_page.dart';
+import 'package:kwentappflutter/ui/feed/feed_viewmodel.dart';
 import 'package:kwentappflutter/ui/post_detail/post_detail_page.dart';
 import 'package:kwentappflutter/ui/post_editor/post_editor_page.dart';
 import 'package:kwentappflutter/ui/profile/profile_page.dart';
@@ -28,7 +32,11 @@ GoRouter createRouter(AuthViewModel auth) {
             routes: [
               GoRoute(
                 path: AppRoutes.feed,
-                builder: (context, state) => const FeedPage(),
+                builder: (context, state) => ChangeNotifierProvider(
+                  create: (context) =>
+                      FeedViewModel(context.read<PostRepository>()),
+                  child: const FeedPage(),
+                ),
               ),
             ],
           ),
