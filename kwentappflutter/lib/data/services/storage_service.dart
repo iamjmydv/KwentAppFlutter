@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:kwentappflutter/core/resources/constants.dart';
+import 'package:kwentappflutter/core/utils/image_bytes.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class StorageService {
@@ -27,14 +28,17 @@ class StorageService {
     required String bucket,
     required String ownerId,
     required Uint8List bytes,
-    String extension = Constants.defaultImageExtension,
+    String? extension,
   }) async {
-    final path = buildPath(ownerId: ownerId, extension: extension);
+    final resolved = extension ??
+        imageExtensionFor(bytes) ??
+        Constants.defaultImageExtension;
+    final path = buildPath(ownerId: ownerId, extension: resolved);
 
     await _client.storage.from(bucket).uploadBinary(
           path,
           bytes,
-          fileOptions: FileOptions(contentType: _contentTypeFor(extension)),
+          fileOptions: FileOptions(contentType: _contentTypeFor(resolved)),
         );
 
     return path;

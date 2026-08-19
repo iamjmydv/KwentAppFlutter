@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:kwentappflutter/core/common/author_avatar.dart';
 import 'package:kwentappflutter/core/theme/app_theme.dart';
 import 'package:kwentappflutter/core/utils/time_ago.dart';
 import 'package:kwentappflutter/data/models/post.dart';
-import 'package:kwentappflutter/ui/feed/widgets/author_avatar.dart';
 
 class PostCard extends StatelessWidget {
   const PostCard({super.key, required this.post, required this.onTap});

@@ -89,4 +89,23 @@ class Strings {
   static const removePhoto = 'Remove';
   static const emailLocked = 'Email can’t be changed';
   static const profileNote = 'Changes show on all your posts and comments.';
+
+  static const kwentoLoadFailed = 'Could not load this kwento.';
+  static const commentsLoadFailed = 'Could not load the kwentuhan.';
+  static const emptyComments = 'Walang komento pa — start the kwentuhan.';
+  static const signInToComment = 'Sign in to join the kwentuhan';
+  static const signInToCommentHint =
+      'Read freely — sign in when you want to reply.';
+  static const commentRequired = 'Write something first.';
+  static const deleteCommentTitle = 'Delete comment';
+  static const deleteCommentMessage =
+      'This removes the comment and its images. This cannot be undone.';
+  static const attachImages = 'Attach images';
+  static const removeImage = 'Remove image';
+  static const someImagesSkipped =
+      'Some images were skipped — JPG or PNG, up to 5 MB each.';
+
+  static String commentsHeading(int count) => 'Comments ($count)';
+  static String nameWithYou(String name) => '$name (you)';
+  static String imageLimit(int max) => 'You can attach up to $max images.';
 }

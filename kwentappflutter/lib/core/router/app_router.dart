@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'package:kwentappflutter/core/router/app_routes.dart';
 import 'package:kwentappflutter/core/router/app_shell.dart';
+import 'package:kwentappflutter/data/repositories/comment_repository.dart';
 import 'package:kwentappflutter/data/repositories/post_repository.dart';
 import 'package:kwentappflutter/ui/auth/auth_viewmodel.dart';
 import 'package:kwentappflutter/ui/auth/login/login_page.dart';
@@ -11,7 +12,9 @@ import 'package:kwentappflutter/ui/auth/register/register_page.dart';
 import 'package:kwentappflutter/ui/connection_check/connection_check_page.dart';
 import 'package:kwentappflutter/ui/feed/feed_page.dart';
 import 'package:kwentappflutter/ui/feed/feed_viewmodel.dart';
+import 'package:kwentappflutter/ui/post_detail/comment_thread_viewmodel.dart';
 import 'package:kwentappflutter/ui/post_detail/post_detail_page.dart';
+import 'package:kwentappflutter/ui/post_detail/post_detail_viewmodel.dart';
 import 'package:kwentappflutter/ui/post_editor/post_editor_page.dart';
 import 'package:kwentappflutter/ui/profile/profile_page.dart';
 
@@ -79,8 +82,27 @@ GoRouter createRouter(AuthViewModel auth) {
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.postDetail,
-        builder: (context, state) =>
-            PostDetailPage(postId: state.pathParameters['id']!),
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+
+          return MultiProvider(
+            providers: [
+              ChangeNotifierProvider(
+                create: (context) => PostDetailViewModel(
+                  context.read<PostRepository>(),
+                  id,
+                ),
+              ),
+              ChangeNotifierProvider(
+                create: (context) => CommentThreadViewModel(
+                  context.read<CommentRepository>(),
+                  id,
+                ),
+              ),
+            ],
+            child: PostDetailPage(postId: id),
+          );
+        },
       ),
     ],
   );

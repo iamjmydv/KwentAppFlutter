@@ -1,6 +1,11 @@
+export 'author_avatar.dart';
+export 'common_confirm_dialog.dart';
 export 'common_loader.dart';
 export 'common_password_field.dart';
 export 'common_primary_button.dart';
 export 'common_snackbar.dart';
 export 'common_text_field.dart';
+export 'editor_image.dart';
+export 'image_picker_row.dart';
+export 'image_thumbnail.dart';
 export 'placeholder_page.dart';
