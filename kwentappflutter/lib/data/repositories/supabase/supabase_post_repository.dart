@@ -95,9 +95,7 @@ class SupabasePostRepository implements PostRepository {
         removed.map((row) => row[Keys.id] as String).toList(),
       );
 
-      final kept = existing
-          .where((row) => keptImageIds.contains(row[Keys.id] as String))
-          .toList();
+      final nextPosition = _nextPositionAfter(existing);
 
       final paths = await _uploadAll(userId, newImages);
       await _database.insertPostImages([
@@ -105,7 +103,7 @@ class SupabasePostRepository implements PostRepository {
           {
             Keys.postId: id,
             Keys.storagePath: paths[i],
-            Keys.position: kept.length + i,
+            Keys.position: nextPosition + i,
           },
       ]);
 
@@ -144,6 +142,17 @@ class SupabasePostRepository implements PostRepository {
     }
 
     return paths;
+  }
+
+  static int _nextPositionAfter(List<Map<String, dynamic>> rows) {
+    var next = 0;
+
+    for (final row in rows) {
+      final position = row[Keys.position] as int? ?? 0;
+      if (position >= next) next = position + 1;
+    }
+
+    return next;
   }
 
   String _requireUserId() {

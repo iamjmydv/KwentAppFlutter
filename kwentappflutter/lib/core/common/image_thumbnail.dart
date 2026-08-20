@@ -10,16 +10,19 @@ class ImageThumbnail extends StatelessWidget {
     this.width = 80,
     this.height = 80,
     this.onRemove,
+    this.markNew = false,
   });
 
   final EditorImage image;
   final double width;
   final double height;
   final VoidCallback? onRemove;
+  final bool markNew;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isNew = markNew && image is NewImage;
 
     final picture = ClipRRect(
       borderRadius: BorderRadius.circular(AppRadius.field),
@@ -28,49 +31,81 @@ class ImageThumbnail extends StatelessWidget {
         height: height,
         child: switch (image) {
           ExistingImage(:final url) => Image.network(
-              url,
-              fit: BoxFit.cover,
-              loadingBuilder: (context, child, progress) => progress == null
-                  ? child
-                  : ColoredBox(color: theme.colorScheme.surfaceContainerHighest),
-              errorBuilder: (context, error, stack) => _Broken(theme: theme),
-            ),
+            url,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, progress) => progress == null
+                ? child
+                : ColoredBox(color: theme.colorScheme.surfaceContainerHighest),
+            errorBuilder: (context, error, stack) => _Broken(theme: theme),
+          ),
           NewImage(:final bytes) => Image.memory(bytes, fit: BoxFit.cover),
         },
       ),
     );
 
-    if (onRemove == null) return picture;
+    final framed = isNew
+        ? Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppRadius.field),
+              border: Border.all(color: theme.colorScheme.primary, width: 2),
+            ),
+            child: picture,
+          )
+        : picture;
+
+    if (onRemove == null && !isNew) return framed;
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        picture,
-        Positioned(
-          top: -6,
-          right: -6,
-          child: Tooltip(
-            message: Strings.removeImage,
-            child: InkResponse(
-              onTap: onRemove,
-              radius: 18,
-              child: Container(
-                height: 22,
-                width: 22,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: theme.colorScheme.outline),
-                ),
-                child: Icon(
-                  Icons.close,
-                  size: 14,
-                  color: theme.colorScheme.onSurface,
+        framed,
+        if (isNew)
+          Positioned(
+            bottom: AppSpacing.xs,
+            left: AppSpacing.xs,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(AppRadius.field),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                child: Text(
+                  Strings.newImageBadge,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+        if (onRemove != null)
+          Positioned(
+            top: -6,
+            right: -6,
+            child: Tooltip(
+              message: Strings.removeImage,
+              child: InkResponse(
+                onTap: onRemove,
+                radius: 18,
+                child: Container(
+                  height: 22,
+                  width: 22,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: theme.colorScheme.outline),
+                  ),
+                  child: Icon(
+                    Icons.close,
+                    size: 14,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }

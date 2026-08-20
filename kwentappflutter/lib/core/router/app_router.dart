@@ -16,6 +16,7 @@ import 'package:kwentappflutter/ui/post_detail/comment_thread_viewmodel.dart';
 import 'package:kwentappflutter/ui/post_detail/post_detail_page.dart';
 import 'package:kwentappflutter/ui/post_detail/post_detail_viewmodel.dart';
 import 'package:kwentappflutter/ui/post_editor/post_editor_page.dart';
+import 'package:kwentappflutter/ui/post_editor/post_editor_viewmodel.dart';
 import 'package:kwentappflutter/ui/profile/profile_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -71,13 +72,24 @@ GoRouter createRouter(AuthViewModel auth) {
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.postNew,
-        builder: (context, state) => const PostEditorPage(),
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) =>
+              PostEditorViewModel(context.read<PostRepository>()),
+          child: const PostEditorPage(),
+        ),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.postEdit,
-        builder: (context, state) =>
-            PostEditorPage(postId: state.pathParameters['id']),
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+
+          return ChangeNotifierProvider(
+            create: (context) =>
+                PostEditorViewModel(context.read<PostRepository>(), postId: id),
+            child: PostEditorPage(postId: id),
+          );
+        },
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
@@ -88,10 +100,8 @@ GoRouter createRouter(AuthViewModel auth) {
           return MultiProvider(
             providers: [
               ChangeNotifierProvider(
-                create: (context) => PostDetailViewModel(
-                  context.read<PostRepository>(),
-                  id,
-                ),
+                create: (context) =>
+                    PostDetailViewModel(context.read<PostRepository>(), id),
               ),
               ChangeNotifierProvider(
                 create: (context) => CommentThreadViewModel(

@@ -26,6 +26,12 @@ class PostDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final state = context.watch<PostDetailViewModel>().state;
+    final signedInId = context.watch<AuthViewModel>().user?.id;
+
+    final ownPost =
+        state is PostDetailLoaded &&
+        signedInId != null &&
+        signedInId == state.post.author.id;
 
     return Scaffold(
       appBar: AppBar(
@@ -35,20 +41,36 @@ class PostDetailPage extends StatelessWidget {
         ),
         title: Text(
           Strings.appName,
-          style: theme.textTheme.titleMedium
-              ?.copyWith(color: theme.colorScheme.primary),
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: theme.colorScheme.primary,
+          ),
         ),
+        actions: [
+          if (ownPost)
+            IconButton(
+              onPressed: () => _edit(context, (state).post.id),
+              tooltip: Strings.editKwento,
+              icon: const Icon(Icons.edit_outlined),
+            ),
+          const SizedBox(width: AppSpacing.sm),
+        ],
       ),
       body: switch (state) {
         PostDetailInitial() || PostDetailLoading() => const CommonLoader(),
         PostDetailError(:final message) => _DetailMessage(
-            title: Strings.kwentoLoadFailed,
-            detail: message,
-            onRetry: context.read<PostDetailViewModel>().load,
-          ),
+          title: Strings.kwentoLoadFailed,
+          detail: message,
+          onRetry: context.read<PostDetailViewModel>().load,
+        ),
         PostDetailLoaded(:final post) => _DetailBody(post: post),
       },
     );
+  }
+
+  static Future<void> _edit(BuildContext context, String id) async {
+    final viewModel = context.read<PostDetailViewModel>();
+    await context.push(AppRoutes.editOf(id));
+    if (context.mounted) viewModel.load();
   }
 
   static void _leave(BuildContext context) {
@@ -135,13 +157,10 @@ class _CommentSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          switch (state) {
-            CommentThreadLoaded(:final count) => Strings.commentsHeading(count),
-            _ => Strings.comments,
-          },
-          style: theme.textTheme.titleMedium,
-        ),
+        Text(switch (state) {
+          CommentThreadLoaded(:final count) => Strings.commentsHeading(count),
+          _ => Strings.comments,
+        }, style: theme.textTheme.titleMedium),
         const SizedBox(height: AppSpacing.md),
         if (auth.isSignedIn)
           CommentComposer(
@@ -154,41 +173,41 @@ class _CommentSection extends StatelessWidget {
         const SizedBox(height: AppSpacing.lg),
         switch (state) {
           CommentThreadInitial() || CommentThreadLoading() => const Padding(
-              padding: EdgeInsets.only(top: AppSpacing.lg),
-              child: CommonLoader(size: 20),
-            ),
+            padding: EdgeInsets.only(top: AppSpacing.lg),
+            child: CommonLoader(size: 20),
+          ),
           CommentThreadError(:final message) => _DetailMessage(
-              title: Strings.commentsLoadFailed,
-              detail: message,
-              onRetry: viewModel.load,
-            ),
+            title: Strings.commentsLoadFailed,
+            detail: message,
+            onRetry: viewModel.load,
+          ),
           CommentThreadLoaded(isEmpty: true) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-              child: Text(
-                Strings.emptyComments,
-                style: theme.textTheme.bodySmall,
-              ),
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+            child: Text(
+              Strings.emptyComments,
+              style: theme.textTheme.bodySmall,
             ),
+          ),
           CommentThreadLoaded(:final comments, :final busyCommentId) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final Comment comment in comments)
-                  CommentTile(
-                    key: ValueKey(comment.id),
-                    comment: comment,
-                    isOwn: auth.user?.id == comment.author.id,
-                    isBusy: busyCommentId == comment.id,
-                    onSave: (body, keptImageIds, newImages) =>
-                        viewModel.updateComment(
-                      id: comment.id,
-                      body: body,
-                      keptImageIds: keptImageIds,
-                      newImages: newImages,
-                    ),
-                    onDelete: () => viewModel.deleteComment(comment.id),
-                  ),
-              ],
-            ),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final Comment comment in comments)
+                CommentTile(
+                  key: ValueKey(comment.id),
+                  comment: comment,
+                  isOwn: auth.user?.id == comment.author.id,
+                  isBusy: busyCommentId == comment.id,
+                  onSave: (body, keptImageIds, newImages) =>
+                      viewModel.updateComment(
+                        id: comment.id,
+                        body: body,
+                        keptImageIds: keptImageIds,
+                        newImages: newImages,
+                      ),
+                  onDelete: () => viewModel.deleteComment(comment.id),
+                ),
+            ],
+          ),
         },
       ],
     );

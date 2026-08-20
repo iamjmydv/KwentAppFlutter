@@ -38,7 +38,8 @@ class Strings {
   static const commentNotFound = 'That comment is no longer available.';
   static const profileNotFound = 'That profile is no longer available.';
   static const genericError = 'Something went wrong. Please try again.';
-  static const networkError = 'No connection. Check your internet and try again.';
+  static const networkError =
+      'No connection. Check your internet and try again.';
   static const storageError = 'Image upload failed. Please try again.';
 
   static const connectionCheckTitle = 'Supabase connection';
@@ -108,4 +109,14 @@ class Strings {
   static String commentsHeading(int count) => 'Comments ($count)';
   static String nameWithYou(String name) => '$name (you)';
   static String imageLimit(int max) => 'You can attach up to $max images.';
+
+  static const titleRequired = 'Please add a title';
+  static const storyRequired = 'Please write your kwento';
+  static const deletePostMessage =
+      'This removes the kwento, its images, and every comment on it. '
+      'This cannot be undone.';
+  static const closeEditor = 'Close';
+  static const newImageBadge = 'NEW';
+
+  static String imagesHeading(int count, int max) => 'Images ($count/$max)';
 }

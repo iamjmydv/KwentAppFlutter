@@ -13,6 +13,8 @@ class ImagePickerRow extends StatelessWidget {
     this.maxImages,
     this.tileSize = 80,
     this.enabled = true,
+    this.markNew = false,
+    this.showCounter = true,
   });
 
   final List<EditorImage> images;
@@ -21,11 +23,14 @@ class ImagePickerRow extends StatelessWidget {
   final int? maxImages;
   final double tileSize;
   final bool enabled;
+  final bool markNew;
+  final bool showCounter;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final canAdd = onAdd != null &&
+    final canAdd =
+        onAdd != null &&
         enabled &&
         (maxImages == null || images.length < maxImages!);
 
@@ -48,12 +53,13 @@ class ImagePickerRow extends StatelessWidget {
                 image: images[index],
                 width: tileSize,
                 height: tileSize,
+                markNew: markNew,
                 onRemove: enabled ? () => onRemove(index) : null,
               );
             },
           ),
         ),
-        if (maxImages != null) ...[
+        if (showCounter && maxImages != null) ...[
           const SizedBox(height: AppSpacing.xs),
           Text(
             '${images.length}/${maxImages!}',

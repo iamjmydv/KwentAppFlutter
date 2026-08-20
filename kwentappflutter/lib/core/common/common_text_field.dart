@@ -15,6 +15,8 @@ class CommonTextField extends StatelessWidget {
     this.autofillHints,
     this.textCapitalization = TextCapitalization.none,
     this.enabled = true,
+    this.minLines,
+    this.maxLines = 1,
   });
 
   final TextEditingController controller;
@@ -28,6 +30,8 @@ class CommonTextField extends StatelessWidget {
   final Iterable<String>? autofillHints;
   final TextCapitalization textCapitalization;
   final bool enabled;
+  final int? minLines;
+  final int? maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +52,8 @@ class CommonTextField extends StatelessWidget {
           autofillHints: autofillHints,
           textCapitalization: textCapitalization,
           enabled: enabled,
+          minLines: minLines,
+          maxLines: maxLines,
           style: theme.textTheme.bodyMedium,
           decoration: InputDecoration(hintText: hint),
         ),
