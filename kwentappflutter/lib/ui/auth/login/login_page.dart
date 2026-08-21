@@ -103,11 +103,17 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: AppSpacing.xs),
                         Text(Strings.tagline, style: theme.textTheme.bodySmall),
                         const SizedBox(height: AppSpacing.xl),
-                        if (formState case AuthFormFailed(:final message)) ...[
-                          CommonErrorBanner(message: message),
-                          const SizedBox(height: AppSpacing.lg),
-                        ],
+                        switch (formState) {
+                          AuthFormFailed(:final message) => Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: AppSpacing.lg,
+                            ),
+                            child: CommonErrorBanner(message: message),
+                          ),
+                          _ => const SizedBox.shrink(),
+                        },
                         CommonTextField(
+                          key: const ValueKey('login-email'),
                           controller: _emailController,
                           label: Strings.emailLabel,
                           hint: Strings.emailHint,
@@ -120,6 +126,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         CommonPasswordField(
+                          key: const ValueKey('login-password'),
                           controller: _passwordController,
                           focusNode: _passwordFocus,
                           label: Strings.passwordLabel,

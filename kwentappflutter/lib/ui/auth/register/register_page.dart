@@ -111,11 +111,17 @@ class _RegisterPageState extends State<RegisterPage> {
                           style: theme.textTheme.bodySmall,
                         ),
                         const SizedBox(height: AppSpacing.xl),
-                        if (formState case AuthFormFailed(:final message)) ...[
-                          CommonErrorBanner(message: message),
-                          const SizedBox(height: AppSpacing.lg),
-                        ],
+                        switch (formState) {
+                          AuthFormFailed(:final message) => Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: AppSpacing.lg,
+                            ),
+                            child: CommonErrorBanner(message: message),
+                          ),
+                          _ => const SizedBox.shrink(),
+                        },
                         CommonTextField(
+                          key: const ValueKey('register-name'),
                           controller: _nameController,
                           label: Strings.nameLabel,
                           hint: Strings.nameHint,
@@ -129,6 +135,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         CommonTextField(
+                          key: const ValueKey('register-email'),
                           controller: _emailController,
                           focusNode: _emailFocus,
                           label: Strings.emailLabel,
@@ -142,6 +149,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         CommonPasswordField(
+                          key: const ValueKey('register-password'),
                           controller: _passwordController,
                           focusNode: _passwordFocus,
                           label: Strings.passwordLabel,
