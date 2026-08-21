@@ -59,39 +59,23 @@ class _RegisterPageState extends State<RegisterPage> {
         auth.resetForm();
         router.go(AppRoutes.feed);
 
-      case AuthFormFailed(:final message):
-        if (!mounted) return;
-        await CommonErrorDialog.show(
-          context,
-          title: Strings.signUpFailedTitle,
-          message: message,
-        );
-        if (!mounted) return;
-        auth.resetForm();
-        _refocusEmail();
+      case AuthFormFailed():
+        break;
 
       case AuthFormIdle() || AuthFormSubmitting():
         break;
     }
   }
 
-  void _refocusEmail() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-
-      _emailController.selection = TextSelection(
-        baseOffset: 0,
-        extentOffset: _emailController.text.length,
-      );
-      FocusScope.of(context).requestFocus(_emailFocus);
-    });
+  void _goToLogin() {
+    context.read<AuthViewModel>().resetForm();
+    context.go(AppRoutes.login);
   }
-
-  void _goToLogin() => context.go(AppRoutes.login);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final formState = context.watch<AuthViewModel>().formState;
 
     return Scaffold(
       body: SafeArea(
@@ -127,6 +111,10 @@ class _RegisterPageState extends State<RegisterPage> {
                           style: theme.textTheme.bodySmall,
                         ),
                         const SizedBox(height: AppSpacing.xl),
+                        if (formState case AuthFormFailed(:final message)) ...[
+                          CommonErrorBanner(message: message),
+                          const SizedBox(height: AppSpacing.lg),
+                        ],
                         CommonTextField(
                           controller: _nameController,
                           label: Strings.nameLabel,

@@ -1,6 +1,6 @@
 export 'author_avatar.dart';
 export 'common_confirm_dialog.dart';
-export 'common_error_dialog.dart';
+export 'common_error_banner.dart';
 export 'common_loader.dart';
 export 'common_password_field.dart';
 export 'common_primary_button.dart';

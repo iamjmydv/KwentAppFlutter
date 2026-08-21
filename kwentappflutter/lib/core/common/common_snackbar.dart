@@ -16,10 +16,7 @@ class CommonSnackbar {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(
-            message,
-            style: TextStyle(color: colorScheme.onError),
-          ),
+          content: Text(message, style: TextStyle(color: colorScheme.onError)),
           backgroundColor: colorScheme.error,
         ),
       );

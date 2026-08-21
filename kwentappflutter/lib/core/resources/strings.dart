@@ -127,8 +127,6 @@ class Strings {
       'Your profile will show your initials instead.';
 
   static const okAction = 'OK';
-  static const signInFailedTitle = 'Sign in failed';
-  static const signUpFailedTitle = 'Sign up failed';
   static const signedInMessage = 'Signed in. Welcome back!';
   static const accountCreatedMessage = 'Account created. Welcome to Kwentapp!';
 }

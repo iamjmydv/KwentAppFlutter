@@ -54,39 +54,23 @@ class _LoginPageState extends State<LoginPage> {
         auth.resetForm();
         router.go(AppRoutes.feed);
 
-      case AuthFormFailed(:final message):
-        if (!mounted) return;
-        await CommonErrorDialog.show(
-          context,
-          title: Strings.signInFailedTitle,
-          message: message,
-        );
-        if (!mounted) return;
-        auth.resetForm();
-        _refocusPassword();
+      case AuthFormFailed():
+        break;
 
       case AuthFormIdle() || AuthFormSubmitting():
         break;
     }
   }
 
-  void _refocusPassword() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-
-      _passwordController.selection = TextSelection(
-        baseOffset: 0,
-        extentOffset: _passwordController.text.length,
-      );
-      FocusScope.of(context).requestFocus(_passwordFocus);
-    });
+  void _goToRegister() {
+    context.read<AuthViewModel>().resetForm();
+    context.go(AppRoutes.register);
   }
-
-  void _goToRegister() => context.go(AppRoutes.register);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final formState = context.watch<AuthViewModel>().formState;
 
     return Scaffold(
       body: SafeArea(
@@ -119,6 +103,10 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: AppSpacing.xs),
                         Text(Strings.tagline, style: theme.textTheme.bodySmall),
                         const SizedBox(height: AppSpacing.xl),
+                        if (formState case AuthFormFailed(:final message)) ...[
+                          CommonErrorBanner(message: message),
+                          const SizedBox(height: AppSpacing.lg),
+                        ],
                         CommonTextField(
                           controller: _emailController,
                           label: Strings.emailLabel,

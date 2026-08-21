@@ -61,8 +61,7 @@ class _CommonPasswordFieldState extends State<CommonPasswordField> {
               icon: Icon(_obscured ? Icons.visibility_off : Icons.visibility),
               iconSize: 20,
               color: theme.colorScheme.onSurfaceVariant,
-              tooltip:
-                  _obscured ? Strings.showPassword : Strings.hidePassword,
+              tooltip: _obscured ? Strings.showPassword : Strings.hidePassword,
             ),
           ),
         ),
