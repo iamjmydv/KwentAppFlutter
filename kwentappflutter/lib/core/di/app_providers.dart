@@ -20,6 +20,7 @@ List<SingleChildWidget> buildAppProviders(SupabaseClient client) {
   final storage = StorageService(client);
 
   final authRepository = SupabaseAuthRepository(auth);
+  final profileRepository = SupabaseProfileRepository(database, storage);
 
   return [
     Provider<AuthService>.value(value: auth),
@@ -32,11 +33,9 @@ List<SingleChildWidget> buildAppProviders(SupabaseClient client) {
     Provider<CommentRepository>.value(
       value: SupabaseCommentRepository(database, storage, auth),
     ),
-    Provider<ProfileRepository>.value(
-      value: SupabaseProfileRepository(database, storage),
-    ),
+    Provider<ProfileRepository>.value(value: profileRepository),
     ChangeNotifierProvider<AuthViewModel>(
-      create: (_) => AuthViewModel(authRepository),
+      create: (_) => AuthViewModel(authRepository, profileRepository),
     ),
   ];
 }

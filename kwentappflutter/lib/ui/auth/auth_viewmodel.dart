@@ -3,24 +3,44 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:kwentappflutter/core/error/failure.dart';
 import 'package:kwentappflutter/data/models/app_user.dart';
+import 'package:kwentappflutter/data/models/profile.dart';
 import 'package:kwentappflutter/core/resources/strings.dart';
 import 'package:kwentappflutter/data/repositories/auth_repository.dart';
+import 'package:kwentappflutter/data/repositories/profile_repository.dart';
 import 'package:kwentappflutter/ui/auth/auth_form_state.dart';
 
 class AuthViewModel extends ChangeNotifier {
-  AuthViewModel(this._repository) {
+  AuthViewModel(this._repository, this._profiles) {
     _user = _repository.currentUser;
     _subscription = _repository.authState.listen(_onAuthChanged);
+    reloadProfile();
   }
 
   final AuthRepository _repository;
+  final ProfileRepository _profiles;
   late final StreamSubscription<AppUser?> _subscription;
 
   AppUser? _user;
+  Profile? _profile;
   AuthFormState _formState = const AuthFormIdle();
 
   AppUser? get user => _user;
+  Profile? get profile => _profile;
   bool get isSignedIn => _user != null;
+
+  Future<void> reloadProfile() async {
+    final id = _user?.id;
+    if (id == null) return;
+
+    try {
+      _profile = await _profiles.fetchProfile(id);
+    } catch (_) {
+      _profile = null;
+    }
+
+    notifyListeners();
+  }
+
   AuthFormState get formState => _formState;
   bool get isBusy => _formState is AuthFormSubmitting;
 
@@ -85,7 +105,9 @@ class AuthViewModel extends ChangeNotifier {
   void _onAuthChanged(AppUser? user) {
     if (_user == user) return;
     _user = user;
+    _profile = null;
     notifyListeners();
+    reloadProfile();
   }
 
   void _set(AuthFormState next) {

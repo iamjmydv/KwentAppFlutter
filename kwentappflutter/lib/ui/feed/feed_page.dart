@@ -5,6 +5,7 @@ import 'package:kwentappflutter/core/resources/strings.dart';
 import 'package:kwentappflutter/core/router/app_routes.dart';
 import 'package:kwentappflutter/core/theme/app_theme.dart';
 import 'package:kwentappflutter/data/models/post.dart';
+import 'package:kwentappflutter/data/models/profile.dart';
 import 'package:kwentappflutter/ui/auth/auth_viewmodel.dart';
 import 'package:kwentappflutter/ui/feed/feed_state.dart';
 import 'package:kwentappflutter/ui/feed/feed_viewmodel.dart';
@@ -56,18 +57,25 @@ class _FeedPageState extends State<FeedPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final state = context.watch<FeedViewModel>().state;
-    final isSignedIn = context.watch<AuthViewModel>().isSignedIn;
+    final auth = context.watch<AuthViewModel>();
 
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
         title: Text(
           Strings.appName,
-          style: theme.textTheme.titleLarge
-              ?.copyWith(color: theme.colorScheme.primary),
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: theme.colorScheme.primary,
+          ),
         ),
         actions: [
-          if (!isSignedIn)
+          if (auth.isSignedIn)
+            _AppBarAvatar(
+              profile:
+                  auth.profile ??
+                  Profile(id: auth.user?.id ?? '', name: auth.user?.name ?? ''),
+            )
+          else
             TextButton(
               onPressed: () => context.go(AppRoutes.login),
               child: const Text(Strings.signIn),
@@ -83,29 +91,29 @@ class _FeedPageState extends State<FeedPage> {
       body: switch (state) {
         FeedInitial() || FeedLoading() => const CommonLoader(),
         FeedError(:final message) => _FeedMessage(
-            icon: Icons.cloud_off_outlined,
-            title: Strings.feedLoadFailed,
-            detail: message,
-            actionLabel: Strings.retry,
-            onAction: context.read<FeedViewModel>().load,
-          ),
+          icon: Icons.cloud_off_outlined,
+          title: Strings.feedLoadFailed,
+          detail: message,
+          actionLabel: Strings.retry,
+          onAction: context.read<FeedViewModel>().load,
+        ),
         FeedLoaded(isEmpty: true) => RefreshIndicator(
-            onRefresh: _refresh,
-            child: _FeedMessage(
-              icon: Icons.article_outlined,
-              title: Strings.emptyFeed,
-              detail: Strings.emptyFeedHint,
-              scrollable: true,
-            ),
+          onRefresh: _refresh,
+          child: _FeedMessage(
+            icon: Icons.article_outlined,
+            title: Strings.emptyFeed,
+            detail: Strings.emptyFeedHint,
+            scrollable: true,
           ),
+        ),
         FeedLoaded() => RefreshIndicator(
-            onRefresh: _refresh,
-            child: _FeedList(
-              state: state,
-              controller: _scrollController,
-              onRetryMore: context.read<FeedViewModel>().loadMore,
-            ),
+          onRefresh: _refresh,
+          child: _FeedList(
+            state: state,
+            controller: _scrollController,
+            onRetryMore: context.read<FeedViewModel>().loadMore,
           ),
+        ),
       },
     );
   }
@@ -126,9 +134,7 @@ class _FeedList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: AppLayout.contentMaxWidth,
-        ),
+        constraints: const BoxConstraints(maxWidth: AppLayout.contentMaxWidth),
         child: ListView.separated(
           controller: controller,
           physics: const AlwaysScrollableScrollPhysics(),
@@ -249,10 +255,7 @@ class _FeedMessage extends StatelessWidget {
           ),
           if (actionLabel != null) ...[
             const SizedBox(height: AppSpacing.lg),
-            OutlinedButton(
-              onPressed: onAction,
-              child: Text(actionLabel!),
-            ),
+            OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
           ],
         ],
       ),
@@ -266,6 +269,26 @@ class _FeedMessage extends StatelessWidget {
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: constraints.maxHeight),
           child: Center(child: content),
+        ),
+      ),
+    );
+  }
+}
+
+class _AppBarAvatar extends StatelessWidget {
+  const _AppBarAvatar({required this.profile});
+
+  final Profile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Tooltip(
+        message: Strings.profileTitle,
+        child: InkResponse(
+          onTap: () => context.go(AppRoutes.profile),
+          radius: 28,
+          child: AuthorAvatar(profile: profile, radius: 22),
         ),
       ),
     );

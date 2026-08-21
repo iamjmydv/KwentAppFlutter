@@ -111,6 +111,7 @@ class _ProfilePageState extends State<ProfilePage> {
       return;
     }
 
+    context.read<AuthViewModel>().reloadProfile();
     CommonSnackbar.show(context, Strings.profileUpdated);
   }
 
