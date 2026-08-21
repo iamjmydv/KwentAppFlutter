@@ -4,6 +4,7 @@ import 'package:kwentappflutter/core/config/supabase_config.dart';
 import 'package:kwentappflutter/core/di/app_providers.dart';
 import 'package:kwentappflutter/core/resources/strings.dart';
 import 'package:kwentappflutter/core/router/app_router.dart';
+import 'package:kwentappflutter/core/theme/app_scroll_behavior.dart';
 import 'package:kwentappflutter/core/theme/app_theme.dart';
 import 'package:kwentappflutter/core/utils/url_strategy.dart';
 import 'package:kwentappflutter/ui/auth/auth_viewmodel.dart';
@@ -66,6 +67,7 @@ class _KwentappRouterAppState extends State<_KwentappRouterApp> {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       routerConfig: _router,
+      scrollBehavior: const AppScrollBehavior(),
     );
   }
 }
@@ -81,6 +83,7 @@ class KwentappUnconfiguredApp extends StatelessWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       home: const ConnectionCheckPage(),
+      scrollBehavior: const AppScrollBehavior(),
     );
   }
 }
