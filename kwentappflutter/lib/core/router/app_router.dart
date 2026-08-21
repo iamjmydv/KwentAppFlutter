@@ -6,6 +6,7 @@ import 'package:kwentappflutter/core/router/app_routes.dart';
 import 'package:kwentappflutter/core/router/app_shell.dart';
 import 'package:kwentappflutter/data/repositories/comment_repository.dart';
 import 'package:kwentappflutter/data/repositories/post_repository.dart';
+import 'package:kwentappflutter/data/repositories/profile_repository.dart';
 import 'package:kwentappflutter/ui/auth/auth_viewmodel.dart';
 import 'package:kwentappflutter/ui/auth/login/login_page.dart';
 import 'package:kwentappflutter/ui/auth/register/register_page.dart';
@@ -18,6 +19,7 @@ import 'package:kwentappflutter/ui/post_detail/post_detail_viewmodel.dart';
 import 'package:kwentappflutter/ui/post_editor/post_editor_page.dart';
 import 'package:kwentappflutter/ui/post_editor/post_editor_viewmodel.dart';
 import 'package:kwentappflutter/ui/profile/profile_page.dart';
+import 'package:kwentappflutter/ui/profile/profile_viewmodel.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -48,7 +50,19 @@ GoRouter createRouter(AuthViewModel auth) {
             routes: [
               GoRoute(
                 path: AppRoutes.profile,
-                builder: (context, state) => const ProfilePage(),
+                builder: (context, state) {
+                  final userId = auth.user?.id;
+                  if (userId == null) return const SizedBox.shrink();
+
+                  return ChangeNotifierProvider(
+                    key: ValueKey(userId),
+                    create: (context) => ProfileViewModel(
+                      context.read<ProfileRepository>(),
+                      userId,
+                    ),
+                    child: const ProfilePage(),
+                  );
+                },
               ),
             ],
           ),

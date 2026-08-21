@@ -18,7 +18,7 @@ class AuthorAvatar extends StatelessWidget {
       backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
       foregroundImage: hasImage ? NetworkImage(url) : null,
       child: Text(
-        _initials(profile.name),
+        initialsOf(profile.name),
         style: theme.textTheme.labelLarge?.copyWith(
           color: theme.colorScheme.primary,
           fontSize: radius * 0.8,
@@ -26,15 +26,15 @@ class AuthorAvatar extends StatelessWidget {
       ),
     );
   }
+}
 
-  static String _initials(String name) {
-    final parts = name.trim().split(RegExp(r'\s+'))
-      ..removeWhere((part) => part.isEmpty);
+String initialsOf(String name) {
+  final parts = name.trim().split(RegExp(r'\s+'))
+    ..removeWhere((part) => part.isEmpty);
 
-    if (parts.isEmpty) return '?';
-    if (parts.length == 1) return parts.first.characters.first.toUpperCase();
+  if (parts.isEmpty) return '?';
+  if (parts.length == 1) return parts.first.characters.first.toUpperCase();
 
-    return (parts.first.characters.first + parts.last.characters.first)
-        .toUpperCase();
-  }
+  return (parts.first.characters.first + parts.last.characters.first)
+      .toUpperCase();
 }

@@ -119,4 +119,10 @@ class Strings {
   static const newImageBadge = 'NEW';
 
   static String imagesHeading(int count, int max) => 'Images ($count/$max)';
+
+  static const profileLoadFailed = 'Could not load your profile.';
+  static const profileUpdated = 'Profile updated';
+  static const removePhotoTitle = 'Remove photo';
+  static const removePhotoMessage =
+      'Your profile will show your initials instead.';
 }
