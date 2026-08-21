@@ -236,7 +236,7 @@ class _SignInPrompt extends StatelessWidget {
           Text(Strings.signInToCommentHint, style: theme.textTheme.bodySmall),
           const SizedBox(height: AppSpacing.md),
           OutlinedButton(
-            onPressed: () => context.push(AppRoutes.login),
+            onPressed: () => context.go(AppRoutes.login),
             child: const Text(Strings.signIn),
           ),
         ],

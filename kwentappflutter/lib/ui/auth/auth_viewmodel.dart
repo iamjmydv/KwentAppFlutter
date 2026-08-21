@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:kwentappflutter/core/error/failure.dart';
 import 'package:kwentappflutter/data/models/app_user.dart';
+import 'package:kwentappflutter/core/resources/strings.dart';
 import 'package:kwentappflutter/data/repositories/auth_repository.dart';
+import 'package:kwentappflutter/ui/auth/auth_form_state.dart';
 
 class AuthViewModel extends ChangeNotifier {
   AuthViewModel(this._repository) {
@@ -15,67 +17,69 @@ class AuthViewModel extends ChangeNotifier {
   late final StreamSubscription<AppUser?> _subscription;
 
   AppUser? _user;
-  var _isBusy = false;
-  String? _errorMessage;
+  AuthFormState _formState = const AuthFormIdle();
 
   AppUser? get user => _user;
   bool get isSignedIn => _user != null;
-  bool get isBusy => _isBusy;
-  String? get errorMessage => _errorMessage;
+  AuthFormState get formState => _formState;
+  bool get isBusy => _formState is AuthFormSubmitting;
 
-  void clearError() {
-    if (_errorMessage == null) return;
-    _errorMessage = null;
-    notifyListeners();
+  void resetForm() {
+    if (_formState is AuthFormIdle) return;
+    _set(const AuthFormIdle());
   }
 
-  Future<bool> register({
+  Future<AuthFormState> register({
     required String name,
     required String email,
     required String password,
   }) {
     return _run(
       () => _repository.register(name: name, email: email, password: password),
+      Strings.accountCreatedMessage,
     );
   }
 
-  Future<bool> login({
+  Future<AuthFormState> login({
     required String email,
     required String password,
   }) {
-    return _run(() => _repository.login(email: email, password: password));
+    return _run(
+      () => _repository.login(email: email, password: password),
+      Strings.signedInMessage,
+    );
   }
 
   Future<bool> logout() async {
-    if (_isBusy) return false;
-    _setBusy(true);
+    if (isBusy) return false;
+    _set(const AuthFormSubmitting());
 
     try {
       await _repository.logout();
       _user = null;
+      _set(const AuthFormIdle());
       return true;
     } catch (error) {
-      _errorMessage = failureMessage(error);
+      _set(AuthFormFailed(failureMessage(error)));
       return false;
-    } finally {
-      _setBusy(false);
     }
   }
 
-  Future<bool> _run(Future<AppUser> Function() action) async {
-    if (_isBusy) return false;
-    _errorMessage = null;
-    _setBusy(true);
+  Future<AuthFormState> _run(
+    Future<AppUser> Function() action,
+    String successMessage,
+  ) async {
+    if (isBusy) return _formState;
+    _set(const AuthFormSubmitting());
 
     try {
       _user = await action();
-      return true;
+      _set(AuthFormSucceeded(successMessage));
     } catch (error) {
-      _errorMessage = failureMessage(error);
-      return false;
-    } finally {
-      _setBusy(false);
+      _set(AuthFormFailed(failureMessage(error)));
     }
+
+    return _formState;
   }
 
   void _onAuthChanged(AppUser? user) {
@@ -84,8 +88,8 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _setBusy(bool value) {
-    _isBusy = value;
+  void _set(AuthFormState next) {
+    _formState = next;
     notifyListeners();
   }
 

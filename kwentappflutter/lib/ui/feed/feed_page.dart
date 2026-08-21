@@ -69,7 +69,7 @@ class _FeedPageState extends State<FeedPage> {
         actions: [
           if (!isSignedIn)
             TextButton(
-              onPressed: () => context.push(AppRoutes.login),
+              onPressed: () => context.go(AppRoutes.login),
               child: const Text(Strings.signIn),
             ),
           const SizedBox(width: AppSpacing.sm),

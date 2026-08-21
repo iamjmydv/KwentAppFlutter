@@ -6,7 +6,7 @@ import 'package:kwentappflutter/core/router/app_routes.dart';
 import 'package:kwentappflutter/core/theme/app_theme.dart';
 import 'package:kwentappflutter/core/utils/validators.dart';
 import 'package:kwentappflutter/ui/auth/auth_viewmodel.dart';
-import 'package:kwentappflutter/ui/auth/leave_auth_flow.dart';
+import 'package:kwentappflutter/ui/auth/auth_form_state.dart';
 import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
@@ -32,8 +32,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _submit() async {
-    FocusScope.of(context).unfocus();
-
     if (!(_formKey.currentState?.validate() ?? false)) {
       setState(() => _autovalidateMode = AutovalidateMode.onUserInteraction);
       return;
@@ -41,35 +39,50 @@ class _LoginPageState extends State<LoginPage> {
 
     final auth = context.read<AuthViewModel>();
     final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
 
-    final ok = await auth.login(
+    final result = await auth.login(
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
 
-    if (ok) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text(Strings.signedInMessage)));
-      if (mounted) leaveAuthFlow(context);
-      return;
-    }
+    switch (result) {
+      case AuthFormSucceeded(:final message):
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(message)));
+        auth.resetForm();
+        router.go(AppRoutes.feed);
 
-    if (!mounted) return;
-    await CommonErrorDialog.show(
-      context,
-      title: Strings.signInFailedTitle,
-      message: auth.errorMessage ?? Strings.genericError,
-    );
+      case AuthFormFailed(:final message):
+        if (!mounted) return;
+        await CommonErrorDialog.show(
+          context,
+          title: Strings.signInFailedTitle,
+          message: message,
+        );
+        if (!mounted) return;
+        auth.resetForm();
+        _refocusPassword();
+
+      case AuthFormIdle() || AuthFormSubmitting():
+        break;
+    }
   }
 
-  void _goToRegister() {
-    if (GoRouterState.of(context).extra == AppRoutes.authSiblingExtra) {
-      context.pop();
-      return;
-    }
-    context.push(AppRoutes.register, extra: AppRoutes.authSiblingExtra);
+  void _refocusPassword() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      _passwordController.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _passwordController.text.length,
+      );
+      FocusScope.of(context).requestFocus(_passwordFocus);
+    });
   }
+
+  void _goToRegister() => context.go(AppRoutes.register);
 
   @override
   Widget build(BuildContext context) {
@@ -94,8 +107,9 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         Text(
                           Strings.appName,
-                          style: theme.textTheme.headlineMedium
-                              ?.copyWith(color: theme.colorScheme.primary),
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            color: theme.colorScheme.primary,
+                          ),
                         ),
                         const SizedBox(height: AppSpacing.xl),
                         Text(
@@ -103,10 +117,7 @@ class _LoginPageState extends State<LoginPage> {
                           style: theme.textTheme.titleLarge,
                         ),
                         const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          Strings.tagline,
-                          style: theme.textTheme.bodySmall,
-                        ),
+                        Text(Strings.tagline, style: theme.textTheme.bodySmall),
                         const SizedBox(height: AppSpacing.xl),
                         CommonTextField(
                           controller: _emailController,
@@ -116,7 +127,8 @@ class _LoginPageState extends State<LoginPage> {
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
                           autofillHints: const [AutofillHints.email],
-                          onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
+                          onFieldSubmitted: (_) =>
+                              _passwordFocus.requestFocus(),
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         CommonPasswordField(

@@ -6,7 +6,7 @@ import 'package:kwentappflutter/core/router/app_routes.dart';
 import 'package:kwentappflutter/core/theme/app_theme.dart';
 import 'package:kwentappflutter/core/utils/validators.dart';
 import 'package:kwentappflutter/ui/auth/auth_viewmodel.dart';
-import 'package:kwentappflutter/ui/auth/leave_auth_flow.dart';
+import 'package:kwentappflutter/ui/auth/auth_form_state.dart';
 import 'package:provider/provider.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -36,8 +36,6 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _submit() async {
-    FocusScope.of(context).unfocus();
-
     if (!(_formKey.currentState?.validate() ?? false)) {
       setState(() => _autovalidateMode = AutovalidateMode.onUserInteraction);
       return;
@@ -45,38 +43,51 @@ class _RegisterPageState extends State<RegisterPage> {
 
     final auth = context.read<AuthViewModel>();
     final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
 
-    final ok = await auth.register(
+    final result = await auth.register(
       name: _nameController.text.trim(),
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
 
-    if (ok) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text(Strings.accountCreatedMessage)),
+    switch (result) {
+      case AuthFormSucceeded(:final message):
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(message)));
+        auth.resetForm();
+        router.go(AppRoutes.feed);
+
+      case AuthFormFailed(:final message):
+        if (!mounted) return;
+        await CommonErrorDialog.show(
+          context,
+          title: Strings.signUpFailedTitle,
+          message: message,
         );
-      if (mounted) leaveAuthFlow(context);
-      return;
-    }
+        if (!mounted) return;
+        auth.resetForm();
+        _refocusEmail();
 
-    if (!mounted) return;
-    await CommonErrorDialog.show(
-      context,
-      title: Strings.signUpFailedTitle,
-      message: auth.errorMessage ?? Strings.genericError,
-    );
+      case AuthFormIdle() || AuthFormSubmitting():
+        break;
+    }
   }
 
-  void _goToLogin() {
-    if (GoRouterState.of(context).extra == AppRoutes.authSiblingExtra) {
-      context.pop();
-      return;
-    }
-    context.push(AppRoutes.login, extra: AppRoutes.authSiblingExtra);
+  void _refocusEmail() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      _emailController.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _emailController.text.length,
+      );
+      FocusScope.of(context).requestFocus(_emailFocus);
+    });
   }
+
+  void _goToLogin() => context.go(AppRoutes.login);
 
   @override
   Widget build(BuildContext context) {
@@ -101,8 +112,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       children: [
                         Text(
                           Strings.appName,
-                          style: theme.textTheme.headlineMedium
-                              ?.copyWith(color: theme.colorScheme.primary),
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            color: theme.colorScheme.primary,
+                          ),
                         ),
                         const SizedBox(height: AppSpacing.xl),
                         Text(
@@ -119,10 +131,8 @@ class _RegisterPageState extends State<RegisterPage> {
                           controller: _nameController,
                           label: Strings.nameLabel,
                           hint: Strings.nameHint,
-                          validator: (value) => Validators.notEmpty(
-                            value,
-                            Strings.nameRequired,
-                          ),
+                          validator: (value) =>
+                              Validators.notEmpty(value, Strings.nameRequired),
                           keyboardType: TextInputType.name,
                           textInputAction: TextInputAction.next,
                           textCapitalization: TextCapitalization.words,
@@ -139,7 +149,8 @@ class _RegisterPageState extends State<RegisterPage> {
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
                           autofillHints: const [AutofillHints.email],
-                          onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
+                          onFieldSubmitted: (_) =>
+                              _passwordFocus.requestFocus(),
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         CommonPasswordField(
