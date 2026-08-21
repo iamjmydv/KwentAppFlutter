@@ -35,8 +35,9 @@ class CommentThreadLoaded extends CommentThreadState {
     return CommentThreadLoaded(
       comments: comments ?? this.comments,
       isSubmitting: isSubmitting ?? this.isSubmitting,
-      busyCommentId:
-          clearBusyComment ? null : (busyCommentId ?? this.busyCommentId),
+      busyCommentId: clearBusyComment
+          ? null
+          : (busyCommentId ?? this.busyCommentId),
     );
   }
 }

@@ -39,6 +39,11 @@ class AppLayout {
   const AppLayout._();
 
   static const contentMaxWidth = 430.0;
+
+  static double sideGutter(double viewportWidth) {
+    final gutter = (viewportWidth - contentMaxWidth) / 2;
+    return gutter > AppSpacing.lg ? gutter : AppSpacing.lg;
+  }
 }
 
 class AppSpacing {
@@ -57,34 +62,34 @@ class AppTheme {
   static const fontFamily = 'Poppins';
 
   static ThemeData light() => _build(
-        brightness: Brightness.light,
-        primary: AppColors.primary,
-        onPrimary: AppColors.onPrimary,
-        background: AppColors.background,
-        surface: AppColors.surface,
-        ink: AppColors.ink,
-        inkSub: AppColors.inkSub,
-        border: AppColors.border,
-        field: AppColors.field,
-        danger: AppColors.danger,
-        dangerText: AppColors.dangerText,
-        onDanger: AppColors.onDanger,
-      );
+    brightness: Brightness.light,
+    primary: AppColors.primary,
+    onPrimary: AppColors.onPrimary,
+    background: AppColors.background,
+    surface: AppColors.surface,
+    ink: AppColors.ink,
+    inkSub: AppColors.inkSub,
+    border: AppColors.border,
+    field: AppColors.field,
+    danger: AppColors.danger,
+    dangerText: AppColors.dangerText,
+    onDanger: AppColors.onDanger,
+  );
 
   static ThemeData dark() => _build(
-        brightness: Brightness.dark,
-        primary: AppColors.darkPrimary,
-        onPrimary: AppColors.darkOnPrimary,
-        background: AppColors.darkBackground,
-        surface: AppColors.darkSurface,
-        ink: AppColors.darkInk,
-        inkSub: AppColors.darkInkSub,
-        border: AppColors.darkBorder,
-        field: AppColors.darkField,
-        danger: AppColors.darkDanger,
-        dangerText: AppColors.darkDangerText,
-        onDanger: AppColors.darkOnDanger,
-      );
+    brightness: Brightness.dark,
+    primary: AppColors.darkPrimary,
+    onPrimary: AppColors.darkOnPrimary,
+    background: AppColors.darkBackground,
+    surface: AppColors.darkSurface,
+    ink: AppColors.darkInk,
+    inkSub: AppColors.darkInkSub,
+    border: AppColors.darkBorder,
+    field: AppColors.darkField,
+    danger: AppColors.darkDanger,
+    dangerText: AppColors.darkDangerText,
+    onDanger: AppColors.darkOnDanger,
+  );
 
   static ThemeData _build({
     required Brightness brightness,
@@ -213,7 +218,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: field,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 13,
+        ),
         hintStyle: TextStyle(
           fontFamily: fontFamily,
           fontSize: 14,

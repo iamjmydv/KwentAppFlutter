@@ -62,25 +62,25 @@ class _ConnectionCheckPageState extends State<ConnectionCheckPage> {
   (IconData, Color, String) _presentation(ThemeData theme) {
     return switch (_status) {
       ConnectionStatus.checking => (
-          Icons.sync,
-          theme.colorScheme.onSurfaceVariant,
-          Strings.checkingConnection,
-        ),
+        Icons.sync,
+        theme.colorScheme.onSurfaceVariant,
+        Strings.checkingConnection,
+      ),
       ConnectionStatus.connected => (
-          Icons.check_circle_outline,
-          theme.colorScheme.primary,
-          Strings.supabaseConnected,
-        ),
+        Icons.check_circle_outline,
+        theme.colorScheme.primary,
+        Strings.supabaseConnected,
+      ),
       ConnectionStatus.notConfigured => (
-          Icons.settings_outlined,
-          theme.colorScheme.onSurfaceVariant,
-          Strings.supabaseNotConfigured,
-        ),
+        Icons.settings_outlined,
+        theme.colorScheme.onSurfaceVariant,
+        Strings.supabaseNotConfigured,
+      ),
       ConnectionStatus.unreachable => (
-          Icons.error_outline,
-          theme.colorScheme.error,
-          Strings.supabaseUnreachable,
-        ),
+        Icons.error_outline,
+        theme.colorScheme.error,
+        Strings.supabaseUnreachable,
+      ),
     };
   }
 

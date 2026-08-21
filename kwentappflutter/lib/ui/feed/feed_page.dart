@@ -132,33 +132,30 @@ class _FeedList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: AppLayout.contentMaxWidth),
-        child: ListView.separated(
-          controller: controller,
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.xl * 3,
-          ),
-          itemCount: state.posts.length + 1,
-          separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
-          itemBuilder: (context, index) {
-            if (index == state.posts.length) {
-              return _FeedFooter(state: state, onRetryMore: onRetryMore);
-            }
+    final gutter = AppLayout.sideGutter(MediaQuery.sizeOf(context).width);
 
-            final Post post = state.posts[index];
-            return PostCard(
-              post: post,
-              onTap: () => context.push(AppRoutes.detailOf(post.id)),
-            );
-          },
-        ),
+    return ListView.separated(
+      controller: controller,
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(
+        gutter,
+        AppSpacing.lg,
+        gutter,
+        AppSpacing.xl * 3,
       ),
+      itemCount: state.posts.length + 1,
+      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+      itemBuilder: (context, index) {
+        if (index == state.posts.length) {
+          return _FeedFooter(state: state, onRetryMore: onRetryMore);
+        }
+
+        final Post post = state.posts[index];
+        return PostCard(
+          post: post,
+          onTap: () => context.push(AppRoutes.detailOf(post.id)),
+        );
+      },
     );
   }
 }

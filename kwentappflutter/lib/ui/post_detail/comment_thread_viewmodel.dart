@@ -49,9 +49,7 @@ class CommentThreadViewModel extends ChangeNotifier {
         newImages: images,
       );
 
-      _set(
-        CommentThreadLoaded(comments: [...current.comments, comment]),
-      );
+      _set(CommentThreadLoaded(comments: [...current.comments, comment]));
       return null;
     } catch (error) {
       _set(current.copyWith(isSubmitting: false));

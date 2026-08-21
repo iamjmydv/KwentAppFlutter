@@ -197,15 +197,19 @@ class _PostEditorPageState extends State<PostEditorPage> {
   Widget _form(PostEditorReady state) {
     final theme = Theme.of(context);
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: AppLayout.contentMaxWidth),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.xl * 2,
+    final gutter = AppLayout.sideGutter(MediaQuery.sizeOf(context).width);
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(
+        gutter,
+        AppSpacing.lg,
+        gutter,
+        AppSpacing.xl * 2,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: AppLayout.contentMaxWidth,
           ),
           child: Form(
             key: _formKey,

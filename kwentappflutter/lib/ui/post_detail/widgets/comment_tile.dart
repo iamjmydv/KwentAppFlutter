@@ -26,7 +26,8 @@ class CommentTile extends StatefulWidget {
     String body,
     List<String> keptImageIds,
     List<Uint8List> newImages,
-  ) onSave;
+  )
+  onSave;
   final Future<String?> Function() onDelete;
 
   @override
