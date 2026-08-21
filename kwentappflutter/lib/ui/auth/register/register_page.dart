@@ -43,16 +43,28 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     final auth = context.read<AuthViewModel>();
+    final messenger = ScaffoldMessenger.of(context);
+
     final ok = await auth.register(
       name: _nameController.text.trim(),
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
 
-    if (!mounted || ok) return;
-    CommonSnackbar.showError(
+    if (ok) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text(Strings.accountCreatedMessage)),
+        );
+      return;
+    }
+
+    if (!mounted) return;
+    await CommonErrorDialog.show(
       context,
-      auth.errorMessage ?? Strings.genericError,
+      title: Strings.signUpFailedTitle,
+      message: auth.errorMessage ?? Strings.genericError,
     );
   }
 

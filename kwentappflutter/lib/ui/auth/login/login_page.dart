@@ -39,15 +39,25 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     final auth = context.read<AuthViewModel>();
+    final messenger = ScaffoldMessenger.of(context);
+
     final ok = await auth.login(
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
 
-    if (!mounted || ok) return;
-    CommonSnackbar.showError(
+    if (ok) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text(Strings.signedInMessage)));
+      return;
+    }
+
+    if (!mounted) return;
+    await CommonErrorDialog.show(
       context,
-      auth.errorMessage ?? Strings.genericError,
+      title: Strings.signInFailedTitle,
+      message: auth.errorMessage ?? Strings.genericError,
     );
   }
 
