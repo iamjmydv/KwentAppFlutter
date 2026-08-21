@@ -6,6 +6,7 @@ import 'package:kwentappflutter/core/router/app_routes.dart';
 import 'package:kwentappflutter/core/theme/app_theme.dart';
 import 'package:kwentappflutter/core/utils/validators.dart';
 import 'package:kwentappflutter/ui/auth/auth_viewmodel.dart';
+import 'package:kwentappflutter/ui/auth/leave_auth_flow.dart';
 import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
@@ -50,6 +51,7 @@ class _LoginPageState extends State<LoginPage> {
       messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(const SnackBar(content: Text(Strings.signedInMessage)));
+      if (mounted) leaveAuthFlow(context);
       return;
     }
 
