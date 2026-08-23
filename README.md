@@ -2,16 +2,12 @@
 
 > **Kwento + App** — *kwento* is Tagalog for story. A mobile-first blog and forum where anyone can read, and signed-in users write, discuss, and manage their own kwento.
 
-**Live demo:** _not yet deployed_
-**Design:** [Figma — Kwentapp Mobile App Design](https://www.figma.com/design/ZhaxX3vMh0m4yYd7QSzi4u) — Design System frame plus six 390×844 screens in user-flow order
+**▶ Live demo: [iamjmydv.github.io/KwentAppFlutter](https://iamjmydv.github.io/KwentAppFlutter/)**
+**Design:** [Figma — Kwentapp Mobile App Design](https://www.figma.com/design/yaGYztcalvGZnX8T6ReTRM/Kwentapp-%E2%80%94-Mobile-App-Design) — Design System frame plus six 390×844 screens in user-flow order
 
 Flutter (Web + Android) · Dart · **Provider** · **go_router** · **Supabase** (Auth · Postgres + RLS · Storage) · **MVVM**
 
----
-
-## Screenshots
-
-_To be added alongside the deployment._
+> Mobile-first at 390×844, shipped as Flutter Web and rendered in a centred column on wide screens. Browse the feed and open any post without an account; writing, commenting, and the profile require sign-in.
 
 ---
 
@@ -51,7 +47,8 @@ lib/
 │   ├── error/         sealed Failure + failureMessage()
 │   ├── resources/     keys, strings, constants (pageSize, image limits)
 │   ├── router/        routes, GoRouter, public-route guard, bottom-nav shell
-│   ├── theme/         design tokens; light and dark built from one private _build()
+│   ├── theme/         design tokens; light and dark from one private _build();
+│   │                  scroll behaviour that enables mouse drag on web
 │   └── utils/         validators, relative timestamps, image byte sniffing,
 │                      image picking, web-only URL strategy via conditional import
 ├── data/
@@ -59,12 +56,15 @@ lib/
 │   ├── repositories/  four interfaces + their Supabase implementations
 │   └── services/      auth · database · storage — the only Supabase touchpoints
 └── ui/
-    ├── auth/          login, register, app-lifetime AuthViewModel
+    ├── auth/          login, register, sealed AuthFormState,
+    │                  app-lifetime AuthViewModel
     ├── feed/          paginated feed + post cards
     ├── post_detail/   gallery + comment thread
     ├── post_editor/   one page, create and edit modes
     └── profile/       avatar CRUD, name, log out
 ```
+
+**Every screen has a sealed state.** `FeedState`, `PostDetailState`, `CommentThreadState`, `PostEditorState`, `ProfileState`, and `AuthFormState` are sealed hierarchies rather than a bag of booleans, so illegal combinations — loading *and* errored at once — cannot be represented, and the `switch` in each view is exhaustive: adding a state is a compile error until it is rendered.
 
 **Dependency injection** happens once at the root. `MultiProvider` builds `SupabaseClient` → a `Provider` per service → a repository per Supabase surface → an app-lifetime `AuthViewModel`, which the router watches as its `refreshListenable`. Screen ViewModels are created by a `ChangeNotifierProvider` in the route builder, so each is born with its page and disposed with it — a stale feed never survives navigation.
 
@@ -150,6 +150,11 @@ The policies were attacked from a second account, **reading the row back after e
 10. **Re-entry guards live on the ViewModel.** Disabling a button is cosmetic: a keyboard submit bypasses it, and a scroll listener past the load-more threshold fires continuously.
 11. **`flutter_web_plugins` is reached through a conditional import.** It cannot be imported on Android, so clean web URLs (`/post/abc`, not `/#/post/abc`) do not cost the Android build.
 12. **The publishable key is committed deliberately.** It is a project identifier, not a credential — what it can do is decided entirely by RLS, which is why the table above matters. The service-role key, which bypasses RLS, appears nowhere in this repo.
+13. **One navigation model for auth: `go`, never `push`.** A route guard redirects by *location*; it cannot pop a page that was pushed imperatively. Mixing the two left a signed-in user staring at the login form while the URL already read `/` — the guard had moved, the pushed page had not. Auth screens are now reached with `go`, so there is no imperative stack to strand.
+14. **Auth errors are an inline banner, not a dialog.** A dialog is a route push: on Flutter web it takes browser focus and restores it after the frame, which left the password field accepting clicks but not keystrokes. A banner rendered inside the form takes no focus, and the message stays visible while the user retypes.
+15. **Form fields carry stable keys.** Flutter reconciles a `Column` by position, so inserting the error banner above the fields shifted them and made Flutter destroy and rebuild them — on web, a rebuilt field renders a caret with no live input connection. The banner slot now always occupies exactly one child, and every field has a `ValueKey`, so no future layout change above them can recreate them.
+16. **Mouse drag is enabled for every scrollable.** Flutter's default `dragDevices` excludes the mouse on desktop, so the image gallery swiped on a phone and ignored the cursor in a browser. One `ScrollBehavior` at `MaterialApp` level fixes the gallery and the horizontal image strip together.
+17. **The signed-in user's profile is loaded by `AuthViewModel`.** `AppUser` carries only what the auth token knows; display name and avatar live in `profiles`. Loading the profile once at session level gives the app bar a real avatar and leaves one source of truth for "who am I" — `AppUser.name` comes from signup metadata and goes stale after a rename.
 
 ---
 
@@ -166,7 +171,23 @@ The Supabase url and publishable key ship with committed defaults, so no flags a
 flutter run -d chrome --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_PUBLISHABLE_KEY=...
 ```
 
-To point it at a fresh Supabase project, run [`supabase/schema.sql`](supabase/schema.sql) then [`supabase/policies.sql`](supabase/policies.sql) in the SQL editor, and turn **Confirm email** off under Authentication → Sign In / Providers.
+To point it at a fresh Supabase project, run [`supabase/schema.sql`](supabase/schema.sql) then [`supabase/policies.sql`](supabase/policies.sql) in the SQL editor, and turn **Confirm email** off under Authentication → Sign In / Providers. Both SQL files are idempotent — safe to re-run.
+
+---
+
+## Deployment
+
+Every push to `main` rebuilds and republishes the site. The workflow is [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): checkout → Flutter **3.47.0** (pinned, so CI cannot drift from local) → `flutter pub get` → **`flutter analyze` as a gate** → `flutter build web --release` → publish to GitHub Pages.
+
+The build output is **not** committed. A `docs/` folder holding ~3 MB of compiled `main.dart.js` would be noise in a repo that exists to be read, so CI rebuilds it instead.
+
+Three things GitHub Pages requires, all handled in the workflow:
+
+- **`--base-href /KwentAppFlutter/`** — Pages serves from a subpath, so without it every asset 404s.
+- **`index.html` copied to `404.html`** — Pages cannot rewrite, so this is the SPA fallback that makes `/post/:id` work on a cold load or refresh. **Honest caveat:** the response still carries a 404 status. A host with real rewrites (Vercel, Cloudflare) returns 200 for the same URL.
+- **`.nojekyll`** — stops Jekyll filtering the build output.
+
+The app uses `usePathUrlStrategy()`, so URLs are `/post/abc123` rather than `/#/post/abc123` — which is exactly why the fallback is needed.
 
 ---
 
@@ -181,4 +202,4 @@ To point it at a fresh Supabase project, run [`supabase/schema.sql`](supabase/sc
 
 ## Notes
 
-Built one feature branch per day, Conventional Commits, each day merged to `main` — the git log is the process record.
+Built one feature branch per day, Conventional Commits, each day merged to `main` — the git log is the process record. Backend before screens: Supabase, RLS, and the data layer landed before the feed, detail, editor, and profile were built, so every screen was written against a real backend rather than a fake one.
