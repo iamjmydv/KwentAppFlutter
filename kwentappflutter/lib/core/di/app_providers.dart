@@ -8,6 +8,7 @@ import 'package:kwentappflutter/data/repositories/supabase/supabase_post_reposit
 import 'package:kwentappflutter/data/repositories/supabase/supabase_profile_repository.dart';
 import 'package:kwentappflutter/data/services/auth_service.dart';
 import 'package:kwentappflutter/data/services/database_service.dart';
+import 'package:kwentappflutter/data/services/profile_cache_service.dart';
 import 'package:kwentappflutter/data/services/storage_service.dart';
 import 'package:kwentappflutter/ui/auth/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
@@ -21,6 +22,7 @@ List<SingleChildWidget> buildAppProviders(SupabaseClient client) {
 
   final authRepository = SupabaseAuthRepository(auth);
   final profileRepository = SupabaseProfileRepository(database, storage);
+  final profileCache = ProfileCacheService();
 
   return [
     Provider<AuthService>.value(value: auth),
@@ -35,7 +37,8 @@ List<SingleChildWidget> buildAppProviders(SupabaseClient client) {
     ),
     Provider<ProfileRepository>.value(value: profileRepository),
     ChangeNotifierProvider<AuthViewModel>(
-      create: (_) => AuthViewModel(authRepository, profileRepository),
+      create: (_) =>
+          AuthViewModel(authRepository, profileRepository, profileCache),
     ),
   ];
 }

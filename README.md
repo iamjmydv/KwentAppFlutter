@@ -54,7 +54,8 @@ lib/
 ├── data/
 │   ├── models/        plain Dart, value equality, no Flutter or Supabase imports
 │   ├── repositories/  four interfaces + their Supabase implementations
-│   └── services/      auth · database · storage — the only Supabase touchpoints
+│   └── services/      auth · database · storage — the only Supabase touchpoints;
+│                      plus a local profile cache backed by shared_preferences
 └── ui/
     ├── auth/          login, register, sealed AuthFormState,
     │                  app-lifetime AuthViewModel
@@ -155,6 +156,7 @@ The policies were attacked from a second account, **reading the row back after e
 15. **Form fields carry stable keys.** Flutter reconciles a `Column` by position, so inserting the error banner above the fields shifted them and made Flutter destroy and rebuild them — on web, a rebuilt field renders a caret with no live input connection. The banner slot now always occupies exactly one child, and every field has a `ValueKey`, so no future layout change above them can recreate them.
 16. **Mouse drag is enabled for every scrollable.** Flutter's default `dragDevices` excludes the mouse on desktop, so the image gallery swiped on a phone and ignored the cursor in a browser. One `ScrollBehavior` at `MaterialApp` level fixes the gallery and the horizontal image strip together.
 17. **The signed-in user's profile is loaded by `AuthViewModel`.** `AppUser` carries only what the auth token knows; display name and avatar live in `profiles`. Loading the profile once at session level gives the app bar a real avatar and leaves one source of truth for "who am I" — `AppUser.name` comes from signup metadata and goes stale after a rename.
+18. **The session profile is cached locally so the avatar does not wait on two round trips.** The avatar URL lives *inside* the profile row, so a cold load had to fetch the profile before it could even begin fetching the image — the app bar showed initials until both completed. The profile is now written to `shared_preferences` and read back on launch, so the image download starts from local storage while the network fetch confirms in parallel. The cache is **keyed by user id**, so a different account cannot inherit the previous user's avatar, and fresh data always wins — the restore bails if the network has already answered. A failed profile fetch keeps whatever is on screen rather than falling back to initials.
 
 ---
 

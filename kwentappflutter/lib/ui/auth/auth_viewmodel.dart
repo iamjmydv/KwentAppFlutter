@@ -7,17 +7,20 @@ import 'package:kwentappflutter/data/models/profile.dart';
 import 'package:kwentappflutter/core/resources/strings.dart';
 import 'package:kwentappflutter/data/repositories/auth_repository.dart';
 import 'package:kwentappflutter/data/repositories/profile_repository.dart';
+import 'package:kwentappflutter/data/services/profile_cache_service.dart';
 import 'package:kwentappflutter/ui/auth/auth_form_state.dart';
 
 class AuthViewModel extends ChangeNotifier {
-  AuthViewModel(this._repository, this._profiles) {
+  AuthViewModel(this._repository, this._profiles, this._cache) {
     _user = _repository.currentUser;
     _subscription = _repository.authState.listen(_onAuthChanged);
+    _restoreCachedProfile();
     reloadProfile();
   }
 
   final AuthRepository _repository;
   final ProfileRepository _profiles;
+  final ProfileCacheService _cache;
   late final StreamSubscription<AppUser?> _subscription;
 
   AppUser? _user;
@@ -32,12 +35,27 @@ class AuthViewModel extends ChangeNotifier {
     final id = _user?.id;
     if (id == null) return;
 
+    final Profile profile;
+
     try {
-      _profile = await _profiles.fetchProfile(id);
+      profile = await _profiles.fetchProfile(id);
     } catch (_) {
-      _profile = null;
+      return;
     }
 
+    _profile = profile;
+    notifyListeners();
+    await _cache.write(profile);
+  }
+
+  Future<void> _restoreCachedProfile() async {
+    final id = _user?.id;
+    if (id == null || _profile != null) return;
+
+    final cached = await _cache.read(id);
+    if (cached == null || _profile != null) return;
+
+    _profile = cached;
     notifyListeners();
   }
 
@@ -107,6 +125,13 @@ class AuthViewModel extends ChangeNotifier {
     _user = user;
     _profile = null;
     notifyListeners();
+
+    if (user == null) {
+      _cache.clear();
+      return;
+    }
+
+    _restoreCachedProfile();
     reloadProfile();
   }
 
