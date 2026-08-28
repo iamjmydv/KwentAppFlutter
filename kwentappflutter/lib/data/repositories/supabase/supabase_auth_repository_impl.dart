@@ -7,8 +7,8 @@ import 'package:kwentappflutter/data/repositories/supabase/failure_mapper.dart';
 import 'package:kwentappflutter/data/services/auth_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
-class SupabaseAuthRepository implements AuthRepository {
-  SupabaseAuthRepository(this._service);
+class SupabaseAuthRepositoryImpl implements AuthRepository {
+  SupabaseAuthRepositoryImpl(this._service);
 
   final AuthService _service;
 

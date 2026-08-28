@@ -7,8 +7,8 @@ import 'package:kwentappflutter/data/repositories/supabase/failure_mapper.dart';
 import 'package:kwentappflutter/data/services/database_service.dart';
 import 'package:kwentappflutter/data/services/storage_service.dart';
 
-class SupabaseProfileRepository implements ProfileRepository {
-  SupabaseProfileRepository(this._database, this._storage);
+class SupabaseProfileRepositoryImpl implements ProfileRepository {
+  SupabaseProfileRepositoryImpl(this._database, this._storage);
 
   final DatabaseService _database;
   final StorageService _storage;

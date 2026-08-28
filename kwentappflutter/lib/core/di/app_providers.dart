@@ -3,10 +3,10 @@ import 'package:kwentappflutter/data/repositories/auth_repository.dart';
 import 'package:kwentappflutter/data/repositories/comment_repository.dart';
 import 'package:kwentappflutter/data/repositories/post_repository.dart';
 import 'package:kwentappflutter/data/repositories/profile_repository.dart';
-import 'package:kwentappflutter/data/repositories/supabase/supabase_auth_repository.dart';
-import 'package:kwentappflutter/data/repositories/supabase/supabase_comment_repository.dart';
-import 'package:kwentappflutter/data/repositories/supabase/supabase_post_repository.dart';
-import 'package:kwentappflutter/data/repositories/supabase/supabase_profile_repository.dart';
+import 'package:kwentappflutter/data/repositories/supabase/supabase_auth_repository_impl.dart';
+import 'package:kwentappflutter/data/repositories/supabase/supabase_comment_repository_impl.dart';
+import 'package:kwentappflutter/data/repositories/supabase/supabase_post_repository_impl.dart';
+import 'package:kwentappflutter/data/repositories/supabase/supabase_profile_repository_impl.dart';
 import 'package:kwentappflutter/data/services/auth_service.dart';
 import 'package:kwentappflutter/data/services/database_service.dart';
 import 'package:kwentappflutter/data/services/profile_cache_service.dart';
@@ -21,8 +21,8 @@ List<SingleChildWidget> buildAppProviders(SupabaseClient client) {
   final database = DatabaseService(client);
   final storage = StorageService(client);
 
-  final authRepository = SupabaseAuthRepository(auth);
-  final profileRepository = SupabaseProfileRepository(database, storage);
+  final authRepository = SupabaseAuthRepositoryImpl(auth);
+  final profileRepository = SupabaseProfileRepositoryImpl(database, storage);
   final profileCache = ProfileCacheService();
   final appEvents = AppEventBus();
 
@@ -36,10 +36,10 @@ List<SingleChildWidget> buildAppProviders(SupabaseClient client) {
     Provider<StorageService>.value(value: storage),
     Provider<AuthRepository>.value(value: authRepository),
     Provider<PostRepository>.value(
-      value: SupabasePostRepository(database, storage, auth),
+      value: SupabasePostRepositoryImpl(database, storage, auth),
     ),
     Provider<CommentRepository>.value(
-      value: SupabaseCommentRepository(database, storage, auth),
+      value: SupabaseCommentRepositoryImpl(database, storage, auth),
     ),
     Provider<ProfileRepository>.value(value: profileRepository),
     ChangeNotifierProvider<AuthViewModel>(

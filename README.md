@@ -2,7 +2,7 @@
 
 > **Kwento + App** — *kwento* is Tagalog for story. A mobile-first blog and forum where anyone can read, and signed-in users write, discuss, and manage their own kwento.
 
-**▶ Live demo: [iamjmydv.github.io/KwentAppFlutter](https://iamjmydv.github.io/KwentAppFlutter/)**
+**▶ Live demo: [jamydevph.github.io/KwentAppFlutter](https://jamydevph.github.io/KwentAppFlutter/)**
 **Design:** [Figma — Kwentapp Mobile App Design](https://www.figma.com/design/yaGYztcalvGZnX8T6ReTRM/Kwentapp-%E2%80%94-Mobile-App-Design) — Design System frame plus six 390×844 screens in user-flow order
 
 Flutter (Web + Android) · Dart · **Provider** · **go_router** · **Supabase** (Auth · Postgres + RLS · Storage) · **MVVM**

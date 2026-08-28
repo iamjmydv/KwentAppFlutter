@@ -1,87 +1,69 @@
 import 'dart:typed_data';
 
 import 'package:kwentappflutter/core/error/failure.dart';
-import 'package:kwentappflutter/core/resources/constants.dart';
 import 'package:kwentappflutter/core/resources/keys.dart';
 import 'package:kwentappflutter/core/resources/strings.dart';
-import 'package:kwentappflutter/data/models/page_result.dart';
-import 'package:kwentappflutter/data/models/post.dart';
-import 'package:kwentappflutter/data/models/post_image.dart';
-import 'package:kwentappflutter/data/repositories/post_repository.dart';
+import 'package:kwentappflutter/data/models/comment.dart';
+import 'package:kwentappflutter/data/models/comment_image.dart';
+import 'package:kwentappflutter/data/repositories/comment_repository.dart';
 import 'package:kwentappflutter/data/repositories/supabase/failure_mapper.dart';
 import 'package:kwentappflutter/data/services/auth_service.dart';
 import 'package:kwentappflutter/data/services/database_service.dart';
 import 'package:kwentappflutter/data/services/storage_service.dart';
 
-class SupabasePostRepository implements PostRepository {
-  SupabasePostRepository(this._database, this._storage, this._auth);
+class SupabaseCommentRepositoryImpl implements CommentRepository {
+  SupabaseCommentRepositoryImpl(this._database, this._storage, this._auth);
 
   final DatabaseService _database;
   final StorageService _storage;
   final AuthService _auth;
 
   @override
-  Future<PageResult<Post>> fetchPage({required int page}) {
+  Future<List<Comment>> fetchComments(String postId) {
     return guard(() async {
-      final from = page * Constants.pageSize;
-      final to = from + Constants.pageSize;
-
-      final rows = await _database.fetchPostsPage(from: from, to: to);
-      final hasMore = rows.length > Constants.pageSize;
-      final visible =
-          hasMore ? rows.sublist(0, Constants.pageSize) : rows;
-
-      return PageResult<Post>(
-        items: visible.map(_toPost).toList(),
-        hasMore: hasMore,
-      );
+      final rows = await _database.fetchComments(postId);
+      return rows.map(_toComment).toList();
     });
   }
 
   @override
-  Future<Post> fetchPost(String id) {
-    return guard(() async => _toPost(await _database.fetchPost(id)));
-  }
-
-  @override
-  Future<Post> createPost({
-    required String title,
+  Future<Comment> addComment({
+    required String postId,
     required String body,
     required List<Uint8List> newImages,
   }) {
     return guard(() async {
       final userId = _requireUserId();
 
-      final inserted = await _database.insertPost(
+      final inserted = await _database.insertComment(
+        postId: postId,
         userId: userId,
-        title: title,
         body: body,
       );
-      final postId = inserted[Keys.id] as String;
+      final commentId = inserted[Keys.id] as String;
 
       try {
         final paths = await _uploadAll(userId, newImages);
-        await _database.insertPostImages([
+        await _database.insertCommentImages([
           for (var i = 0; i < paths.length; i++)
             {
-              Keys.postId: postId,
+              Keys.commentId: commentId,
               Keys.storagePath: paths[i],
               Keys.position: i,
             },
         ]);
       } catch (_) {
-        await _discardPost(postId);
+        await _discardComment(commentId);
         rethrow;
       }
 
-      return _toPost(await _database.fetchPost(postId));
+      return _toComment(await _database.fetchComment(commentId));
     });
   }
 
   @override
-  Future<Post> updatePost({
+  Future<Comment> updateComment({
     required String id,
-    required String title,
     required String body,
     required List<String> keptImageIds,
     required List<Uint8List> newImages,
@@ -89,47 +71,47 @@ class SupabasePostRepository implements PostRepository {
     return guard(() async {
       final userId = _requireUserId();
 
-      await _database.updatePost(id: id, title: title, body: body);
+      await _database.updateComment(id: id, body: body);
 
-      final existing = await _database.fetchPostImages(id);
+      final existing = await _database.fetchCommentImages(id);
       final removed = existing
           .where((row) => !keptImageIds.contains(row[Keys.id] as String))
           .toList();
 
-      await _database.deletePostImages(
+      await _database.deleteCommentImages(
         removed.map((row) => row[Keys.id] as String).toList(),
       );
 
       final nextPosition = _nextPositionAfter(existing);
 
       final paths = await _uploadAll(userId, newImages);
-      await _database.insertPostImages([
+      await _database.insertCommentImages([
         for (var i = 0; i < paths.length; i++)
           {
-            Keys.postId: id,
+            Keys.commentId: id,
             Keys.storagePath: paths[i],
             Keys.position: nextPosition + i,
           },
       ]);
 
       await _storage.remove(
-        bucket: Keys.postImagesBucket,
+        bucket: Keys.commentImagesBucket,
         paths: removed.map((row) => row[Keys.storagePath] as String).toList(),
       );
 
-      return _toPost(await _database.fetchPost(id));
+      return _toComment(await _database.fetchComment(id));
     });
   }
 
   @override
-  Future<void> deletePost(String id) {
+  Future<void> deleteComment(String id) {
     return guard(() async {
-      final images = await _database.fetchPostImages(id);
+      final images = await _database.fetchCommentImages(id);
       final paths =
           images.map((row) => row[Keys.storagePath] as String).toList();
 
-      await _database.deletePost(id);
-      await _storage.remove(bucket: Keys.postImagesBucket, paths: paths);
+      await _database.deleteComment(id);
+      await _storage.remove(bucket: Keys.commentImagesBucket, paths: paths);
     });
   }
 
@@ -140,23 +122,23 @@ class SupabasePostRepository implements PostRepository {
       for (final bytes in images) {
         paths.add(
           await _storage.upload(
-            bucket: Keys.postImagesBucket,
+            bucket: Keys.commentImagesBucket,
             ownerId: userId,
             bytes: bytes,
           ),
         );
       }
     } catch (_) {
-      await _storage.remove(bucket: Keys.postImagesBucket, paths: paths);
+      await _storage.remove(bucket: Keys.commentImagesBucket, paths: paths);
       rethrow;
     }
 
     return paths;
   }
 
-  Future<void> _discardPost(String id) async {
+  Future<void> _discardComment(String id) async {
     try {
-      await _database.deletePost(id);
+      await _database.deleteComment(id);
     } catch (_) {
       return;
     }
@@ -179,21 +161,21 @@ class SupabasePostRepository implements PostRepository {
     return id;
   }
 
-  Post _toPost(Map<String, dynamic> row) {
-    final post = Post.fromMap(row[Keys.id] as String, row);
+  Comment _toComment(Map<String, dynamic> row) {
+    final comment = Comment.fromMap(row[Keys.id] as String, row);
 
-    return post.copyWith(
-      author: post.author.copyWith(
-        avatarUrl: _avatarUrl(post.author.avatarUrl),
+    return comment.copyWith(
+      author: comment.author.copyWith(
+        avatarUrl: _avatarUrl(comment.author.avatarUrl),
       ),
-      images: post.images.map(_withPublicUrl).toList(),
+      images: comment.images.map(_withPublicUrl).toList(),
     );
   }
 
-  PostImage _withPublicUrl(PostImage image) {
+  CommentImage _withPublicUrl(CommentImage image) {
     return image.withUrl(
       _storage.publicUrl(
-        bucket: Keys.postImagesBucket,
+        bucket: Keys.commentImagesBucket,
         path: image.storagePath,
       ),
     );
