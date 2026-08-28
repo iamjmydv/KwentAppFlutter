@@ -1,3 +1,4 @@
+import 'package:kwentappflutter/core/events/app_events.dart';
 import 'package:kwentappflutter/data/repositories/auth_repository.dart';
 import 'package:kwentappflutter/data/repositories/comment_repository.dart';
 import 'package:kwentappflutter/data/repositories/post_repository.dart';
@@ -23,8 +24,13 @@ List<SingleChildWidget> buildAppProviders(SupabaseClient client) {
   final authRepository = SupabaseAuthRepository(auth);
   final profileRepository = SupabaseProfileRepository(database, storage);
   final profileCache = ProfileCacheService();
+  final appEvents = AppEventBus();
 
   return [
+    Provider<AppEventBus>(
+      create: (_) => appEvents,
+      dispose: (_, bus) => bus.dispose(),
+    ),
     Provider<AuthService>.value(value: auth),
     Provider<DatabaseService>.value(value: database),
     Provider<StorageService>.value(value: storage),
@@ -37,8 +43,12 @@ List<SingleChildWidget> buildAppProviders(SupabaseClient client) {
     ),
     Provider<ProfileRepository>.value(value: profileRepository),
     ChangeNotifierProvider<AuthViewModel>(
-      create: (_) =>
-          AuthViewModel(authRepository, profileRepository, profileCache),
+      create: (_) => AuthViewModel(
+        authRepository,
+        profileRepository,
+        profileCache,
+        appEvents,
+      ),
     ),
   ];
 }

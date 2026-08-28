@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'package:kwentappflutter/core/router/app_routes.dart';
+import 'package:kwentappflutter/core/events/app_events.dart';
 import 'package:kwentappflutter/core/router/app_shell.dart';
 import 'package:kwentappflutter/data/repositories/comment_repository.dart';
 import 'package:kwentappflutter/data/repositories/post_repository.dart';
@@ -39,8 +40,10 @@ GoRouter createRouter(AuthViewModel auth) {
               GoRoute(
                 path: AppRoutes.feed,
                 builder: (context, state) => ChangeNotifierProvider(
-                  create: (context) =>
-                      FeedViewModel(context.read<PostRepository>()),
+                  create: (context) => FeedViewModel(
+                    context.read<PostRepository>(),
+                    context.read<AppEventBus>(),
+                  ),
                   child: const FeedPage(),
                 ),
               ),
@@ -58,6 +61,7 @@ GoRouter createRouter(AuthViewModel auth) {
                     key: ValueKey(userId),
                     create: (context) => ProfileViewModel(
                       context.read<ProfileRepository>(),
+                      context.read<AppEventBus>(),
                       userId,
                     ),
                     child: const ProfilePage(),
@@ -87,8 +91,10 @@ GoRouter createRouter(AuthViewModel auth) {
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.postNew,
         builder: (context, state) => ChangeNotifierProvider(
-          create: (context) =>
-              PostEditorViewModel(context.read<PostRepository>()),
+          create: (context) => PostEditorViewModel(
+            context.read<PostRepository>(),
+            context.read<AppEventBus>(),
+          ),
           child: const PostEditorPage(),
         ),
       ),
@@ -99,8 +105,11 @@ GoRouter createRouter(AuthViewModel auth) {
           final id = state.pathParameters['id']!;
 
           return ChangeNotifierProvider(
-            create: (context) =>
-                PostEditorViewModel(context.read<PostRepository>(), postId: id),
+            create: (context) => PostEditorViewModel(
+              context.read<PostRepository>(),
+              context.read<AppEventBus>(),
+              postId: id,
+            ),
             child: PostEditorPage(postId: id),
           );
         },
@@ -114,12 +123,16 @@ GoRouter createRouter(AuthViewModel auth) {
           return MultiProvider(
             providers: [
               ChangeNotifierProvider(
-                create: (context) =>
-                    PostDetailViewModel(context.read<PostRepository>(), id),
+                create: (context) => PostDetailViewModel(
+                  context.read<PostRepository>(),
+                  context.read<AppEventBus>(),
+                  id,
+                ),
               ),
               ChangeNotifierProvider(
                 create: (context) => CommentThreadViewModel(
                   context.read<CommentRepository>(),
+                  context.read<AppEventBus>(),
                   id,
                 ),
               ),

@@ -42,15 +42,20 @@ class SupabaseCommentRepository implements CommentRepository {
       );
       final commentId = inserted[Keys.id] as String;
 
-      final paths = await _uploadAll(userId, newImages);
-      await _database.insertCommentImages([
-        for (var i = 0; i < paths.length; i++)
-          {
-            Keys.commentId: commentId,
-            Keys.storagePath: paths[i],
-            Keys.position: i,
-          },
-      ]);
+      try {
+        final paths = await _uploadAll(userId, newImages);
+        await _database.insertCommentImages([
+          for (var i = 0; i < paths.length; i++)
+            {
+              Keys.commentId: commentId,
+              Keys.storagePath: paths[i],
+              Keys.position: i,
+            },
+        ]);
+      } catch (_) {
+        await _discardComment(commentId);
+        rethrow;
+      }
 
       return _toComment(await _database.fetchComment(commentId));
     });
@@ -113,17 +118,30 @@ class SupabaseCommentRepository implements CommentRepository {
   Future<List<String>> _uploadAll(String userId, List<Uint8List> images) async {
     final paths = <String>[];
 
-    for (final bytes in images) {
-      paths.add(
-        await _storage.upload(
-          bucket: Keys.commentImagesBucket,
-          ownerId: userId,
-          bytes: bytes,
-        ),
-      );
+    try {
+      for (final bytes in images) {
+        paths.add(
+          await _storage.upload(
+            bucket: Keys.commentImagesBucket,
+            ownerId: userId,
+            bytes: bytes,
+          ),
+        );
+      }
+    } catch (_) {
+      await _storage.remove(bucket: Keys.commentImagesBucket, paths: paths);
+      rethrow;
     }
 
     return paths;
+  }
+
+  Future<void> _discardComment(String id) async {
+    try {
+      await _database.deleteComment(id);
+    } catch (_) {
+      return;
+    }
   }
 
   static int _nextPositionAfter(List<Map<String, dynamic>> rows) {

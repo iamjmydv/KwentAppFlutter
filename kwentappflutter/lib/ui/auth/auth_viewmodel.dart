@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:kwentappflutter/core/error/failure.dart';
+import 'package:kwentappflutter/core/events/app_events.dart';
 import 'package:kwentappflutter/data/models/app_user.dart';
 import 'package:kwentappflutter/data/models/profile.dart';
 import 'package:kwentappflutter/core/resources/strings.dart';
@@ -11,9 +12,10 @@ import 'package:kwentappflutter/data/services/profile_cache_service.dart';
 import 'package:kwentappflutter/ui/auth/auth_form_state.dart';
 
 class AuthViewModel extends ChangeNotifier {
-  AuthViewModel(this._repository, this._profiles, this._cache) {
+  AuthViewModel(this._repository, this._profiles, this._cache, this._events) {
     _user = _repository.currentUser;
     _subscription = _repository.authState.listen(_onAuthChanged);
+    _eventSubscription = _events.events.listen(_onEvent);
     _restoreCachedProfile();
     reloadProfile();
   }
@@ -21,7 +23,9 @@ class AuthViewModel extends ChangeNotifier {
   final AuthRepository _repository;
   final ProfileRepository _profiles;
   final ProfileCacheService _cache;
+  final AppEventBus _events;
   late final StreamSubscription<AppUser?> _subscription;
+  late final StreamSubscription<DomainEvent> _eventSubscription;
 
   AppUser? _user;
   Profile? _profile;
@@ -30,6 +34,22 @@ class AuthViewModel extends ChangeNotifier {
   AppUser? get user => _user;
   Profile? get profile => _profile;
   bool get isSignedIn => _user != null;
+
+  void _onEvent(DomainEvent event) {
+    switch (event) {
+      case ProfileChanged(:final profile):
+        if (profile.id != _user?.id) return;
+        _profile = profile;
+        notifyListeners();
+        _cache.write(profile);
+
+      case PostCreated():
+      case PostUpdated():
+      case PostDeleted():
+      case CommentCountChanged():
+        break;
+    }
+  }
 
   Future<void> reloadProfile() async {
     final id = _user?.id;
@@ -43,6 +63,8 @@ class AuthViewModel extends ChangeNotifier {
       return;
     }
 
+    if (_user?.id != id) return;
+
     _profile = profile;
     notifyListeners();
     await _cache.write(profile);
@@ -53,7 +75,7 @@ class AuthViewModel extends ChangeNotifier {
     if (id == null || _profile != null) return;
 
     final cached = await _cache.read(id);
-    if (cached == null || _profile != null) return;
+    if (cached == null || _profile != null || _user?.id != id) return;
 
     _profile = cached;
     notifyListeners();
@@ -143,6 +165,7 @@ class AuthViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _subscription.cancel();
+    _eventSubscription.cancel();
     super.dispose();
   }
 }

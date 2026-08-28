@@ -59,15 +59,20 @@ class SupabasePostRepository implements PostRepository {
       );
       final postId = inserted[Keys.id] as String;
 
-      final paths = await _uploadAll(userId, newImages);
-      await _database.insertPostImages([
-        for (var i = 0; i < paths.length; i++)
-          {
-            Keys.postId: postId,
-            Keys.storagePath: paths[i],
-            Keys.position: i,
-          },
-      ]);
+      try {
+        final paths = await _uploadAll(userId, newImages);
+        await _database.insertPostImages([
+          for (var i = 0; i < paths.length; i++)
+            {
+              Keys.postId: postId,
+              Keys.storagePath: paths[i],
+              Keys.position: i,
+            },
+        ]);
+      } catch (_) {
+        await _discardPost(postId);
+        rethrow;
+      }
 
       return _toPost(await _database.fetchPost(postId));
     });
@@ -131,17 +136,30 @@ class SupabasePostRepository implements PostRepository {
   Future<List<String>> _uploadAll(String userId, List<Uint8List> images) async {
     final paths = <String>[];
 
-    for (final bytes in images) {
-      paths.add(
-        await _storage.upload(
-          bucket: Keys.postImagesBucket,
-          ownerId: userId,
-          bytes: bytes,
-        ),
-      );
+    try {
+      for (final bytes in images) {
+        paths.add(
+          await _storage.upload(
+            bucket: Keys.postImagesBucket,
+            ownerId: userId,
+            bytes: bytes,
+          ),
+        );
+      }
+    } catch (_) {
+      await _storage.remove(bucket: Keys.postImagesBucket, paths: paths);
+      rethrow;
     }
 
     return paths;
+  }
+
+  Future<void> _discardPost(String id) async {
+    try {
+      await _database.deletePost(id);
+    } catch (_) {
+      return;
+    }
   }
 
   static int _nextPositionAfter(List<Map<String, dynamic>> rows) {

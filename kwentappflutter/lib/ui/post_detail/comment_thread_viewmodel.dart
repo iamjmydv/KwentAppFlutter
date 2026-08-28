@@ -1,21 +1,64 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:kwentappflutter/core/error/failure.dart';
+import 'package:kwentappflutter/core/events/app_events.dart';
 import 'package:kwentappflutter/data/models/comment.dart';
 import 'package:kwentappflutter/data/repositories/comment_repository.dart';
 import 'package:kwentappflutter/ui/post_detail/comment_thread_state.dart';
 
 class CommentThreadViewModel extends ChangeNotifier {
-  CommentThreadViewModel(this._repository, this._postId) {
+  CommentThreadViewModel(this._repository, this._events, this._postId) {
+    _subscription = _events.events.listen(_onEvent);
     load();
   }
 
   final CommentRepository _repository;
+  final AppEventBus _events;
   final String _postId;
+  late final StreamSubscription<DomainEvent> _subscription;
 
   CommentThreadState _state = const CommentThreadInitial();
   var _isBusy = false;
 
   CommentThreadState get state => _state;
+
+  void _onEvent(DomainEvent event) {
+    final current = _state;
+    if (current is! CommentThreadLoaded) return;
+
+    switch (event) {
+      case ProfileChanged(:final profile):
+        final matches = current.comments.any(
+          (comment) => comment.author.id == profile.id,
+        );
+        if (!matches) return;
+
+        _set(
+          current.copyWith(
+            comments: [
+              for (final Comment comment in current.comments)
+                if (comment.author.id == profile.id)
+                  comment.copyWith(author: profile)
+                else
+                  comment,
+            ],
+          ),
+        );
+
+      case PostCreated():
+      case PostUpdated():
+      case PostDeleted():
+      case CommentCountChanged():
+        break;
+    }
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
 
   Future<void> load() async {
     if (_isBusy) return;
@@ -50,6 +93,7 @@ class CommentThreadViewModel extends ChangeNotifier {
       );
 
       _set(CommentThreadLoaded(comments: [...current.comments, comment]));
+      _events.publish(CommentCountChanged(postId: _postId, delta: 1));
       return null;
     } catch (error) {
       _set(current.copyWith(isSubmitting: false));
@@ -114,6 +158,7 @@ class CommentThreadViewModel extends ChangeNotifier {
           ],
         ),
       );
+      _events.publish(CommentCountChanged(postId: _postId, delta: -1));
       return null;
     } catch (error) {
       _set(current.copyWith(clearBusyComment: true));

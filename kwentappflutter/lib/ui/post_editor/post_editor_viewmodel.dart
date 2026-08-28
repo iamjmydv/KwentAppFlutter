@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:kwentappflutter/core/error/failure.dart';
+import 'package:kwentappflutter/core/events/app_events.dart';
 import 'package:kwentappflutter/data/repositories/post_repository.dart';
 import 'package:kwentappflutter/ui/post_editor/post_editor_state.dart';
 
 class PostEditorViewModel extends ChangeNotifier {
-  PostEditorViewModel(this._repository, {this.postId}) {
+  PostEditorViewModel(this._repository, this._events, {this.postId}) {
     if (isEditing) {
       load();
     } else {
@@ -13,6 +14,7 @@ class PostEditorViewModel extends ChangeNotifier {
   }
 
   final PostRepository _repository;
+  final AppEventBus _events;
   final String? postId;
 
   PostEditorState _state = const PostEditorLoading();
@@ -62,6 +64,7 @@ class PostEditorViewModel extends ChangeNotifier {
               newImages: newImages,
             );
 
+      _events.publish(isEditing ? PostUpdated(post) : PostCreated(post));
       return EditorSucceeded(post.id);
     } catch (error) {
       _set(current.copyWith(isSaving: false));
@@ -80,6 +83,7 @@ class PostEditorViewModel extends ChangeNotifier {
 
     try {
       await _repository.deletePost(postId!);
+      _events.publish(PostDeleted(postId!));
       return EditorSucceeded(postId!);
     } catch (error) {
       _set(current.copyWith(isDeleting: false));

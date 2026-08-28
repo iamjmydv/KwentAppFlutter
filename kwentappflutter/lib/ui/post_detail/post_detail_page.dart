@@ -67,10 +67,8 @@ class PostDetailPage extends StatelessWidget {
     );
   }
 
-  static Future<void> _edit(BuildContext context, String id) async {
-    final viewModel = context.read<PostDetailViewModel>();
-    await context.push(AppRoutes.editOf(id));
-    if (context.mounted) viewModel.load();
+  static void _edit(BuildContext context, String id) {
+    context.push(AppRoutes.editOf(id));
   }
 
   static void _leave(BuildContext context) {

@@ -1,15 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:kwentappflutter/core/error/failure.dart';
+import 'package:kwentappflutter/core/events/app_events.dart';
 import 'package:kwentappflutter/data/models/profile.dart';
 import 'package:kwentappflutter/data/repositories/profile_repository.dart';
 import 'package:kwentappflutter/ui/profile/profile_state.dart';
 
 class ProfileViewModel extends ChangeNotifier {
-  ProfileViewModel(this._repository, this._userId) {
+  ProfileViewModel(this._repository, this._events, this._userId) {
     load();
   }
 
   final ProfileRepository _repository;
+  final AppEventBus _events;
   final String _userId;
 
   ProfileState _state = const ProfileLoading();
@@ -74,7 +76,9 @@ class ProfileViewModel extends ChangeNotifier {
     _set(busy(current));
 
     try {
-      _set(ProfileLoaded(profile: await action()));
+      final profile = await action();
+      _set(ProfileLoaded(profile: profile));
+      _events.publish(ProfileChanged(profile));
       return null;
     } catch (error) {
       _set(idle(current));
